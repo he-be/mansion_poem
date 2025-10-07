@@ -17,9 +17,14 @@
       </div>
 
       <footer class="game-footer">
+        <LoadingSpinner
+          v-if="gameStore.isGeneratingPoem"
+          message="ポエムを生成中..."
+        />
         <AppButton
+          v-else
           label="チラシを生成する"
-          :disabled="!gameStore.isAllSelected"
+          :disabled="!gameStore.isAllSelected || gameStore.isGeneratingPoem"
           @click="handleGenerateFlyer"
         />
       </footer>
@@ -42,6 +47,7 @@ import type { ConditionCard } from '@/types/card'
 import CardHand from '@/components/cards/CardHand.vue'
 import PoemSelectionModal from '@/components/modals/PoemSelectionModal.vue'
 import AppButton from '@/components/common/AppButton.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -70,8 +76,8 @@ const handlePoemSelected = (poemId: string) => {
   }
 }
 
-const handleGenerateFlyer = () => {
-  gameStore.generateFlyer()
+const handleGenerateFlyer = async () => {
+  await gameStore.generateFlyer()
   router.push('/result')
 }
 </script>

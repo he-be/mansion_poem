@@ -21,6 +21,19 @@
             <p class="flyer-pair__text">{{ pair.selectedPoem.poem_text }}</p>
           </div>
         </div>
+
+        <div class="generated-poem">
+          <h2 class="generated-poem__title">あなたの選んだ物語</h2>
+          <p class="generated-poem__text">{{ gameStore.generatedPoem }}</p>
+          <div v-if="gameStore.poemGenerationError" class="error-message">
+            <p>{{ gameStore.poemGenerationError }}</p>
+            <AppButton
+              label="再生成する"
+              variant="secondary"
+              @click="handleRetry"
+            />
+          </div>
+        </div>
       </div>
 
       <footer class="flyer-footer">
@@ -46,6 +59,10 @@ const gameStore = useGameStore()
 const handleRestart = () => {
   gameStore.reset()
   router.push('/')
+}
+
+const handleRetry = async () => {
+  await gameStore.retryPoemGeneration()
 }
 </script>
 
@@ -139,6 +156,42 @@ const handleRestart = () => {
   color: #2d3748;
   margin: 0 0 2rem 0;
   font-style: italic;
+}
+
+.generated-poem {
+  margin-top: 2rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 8px;
+}
+
+.generated-poem__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
+.generated-poem__text {
+  font-size: 1.125rem;
+  line-height: 2;
+  color: #2d3748;
+  white-space: pre-wrap;
+  text-align: justify;
+}
+
+.error-message {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #fed7d7;
+  border-radius: 4px;
+  color: #c53030;
+  text-align: center;
+}
+
+.error-message p {
+  margin: 0 0 1rem 0;
 }
 
 @media (max-width: 768px) {
