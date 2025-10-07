@@ -76,7 +76,7 @@ export async function generatePoemWithGemini(
           }],
           generationConfig: {
             temperature: 0.9,
-            maxOutputTokens: 800,
+            maxOutputTokens: 2048,
           }
         }),
         signal: controller.signal
