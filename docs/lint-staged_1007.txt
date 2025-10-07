@@ -1,0 +1,60 @@
+Pre-commit Hook トラブルシューティング指示書
+1. 問題の核心
+ご提示いただいた情報から、問題の根本原因は lint-staged がコミット対象のファイルパスを vue-tsc コマンドの引数として渡してしまうことにあると断定できます。
+
+vue-tsc は、引数でファイルパスが指定されると、tsconfig.json のプロジェクト全体設定（特に paths エイリアスや include）を無視して、そのファイル単体で型チェックを行おうとします。これが、エイリアス（@/）の解決エラーや import.meta のエラーを引き起こしています。
+
+ローカルで npx vue-tsc を直接実行すると成功するのは、引数が渡されず、tsconfig.json に基づいてプロジェクト全体が正しく評価されるためです。
+
+2. 推奨される解決策
+npm スクリプトを経由して vue-tsc を実行する方法を推奨します。この方法は、lint-staged から渡されるファイルパスの引数を無視させることができ、可読性も高く管理しやすいためです。
+
+手順
+package.json の scripts に型チェック用のコマンドを追加します。
+
+JSON
+
+"scripts": {
+  // ... 他スクリプト
+  "typecheck": "vue-tsc --noEmit --skipLibCheck"
+},
+ポイント: vue-tsc に --project オプションは不要です。コマンドがプロジェクトルートで実行される限り、tsconfig.json は自動的に検出されます。
+
+lint-staged の設定を、追加した npm スクリプトを呼び出すように変更します。
+
+JSON
+
+"lint-staged": {
+  "*.{ts,tsx,vue}": "npm run typecheck"
+}
+重要: lint-staged の設定を配列 [] ではなく、文字列 "" にすることで、ファイルごとにコマンドが実行されるのではなく、コミット全体で1回だけコマンドが実行されるようになり、効率的です。
+
+この設定により、コミット対象のファイル（*.{ts,tsx,vue}）が存在する場合に、npm run typecheck が 一度だけ 実行されます。このコマンドはファイルパスを引数に取らないため、プロジェクト全体が tsconfig.json に基づいて正しくチェックされます。
+
+3. 代替の解決策
+npm スクリプトを追加したくない場合は、bash -c を使用して引数を無視させる方法も有効です。
+
+JSON
+
+"lint-staged": {
+  "*.{ts,tsx,vue}": "bash -c 'vue-tsc --noEmit --skipLibCheck'"
+}
+この方法は、lint-staged から渡されるファイルパスを bash が受け取り、シングルクォート内のコマンド vue-tsc ... には渡さないため、推奨策と同じ結果が得られます。
+
+4. tsconfig.json の設定について
+これまでの試行で変更した tsconfig.json の設定は、問題の解決に直接寄与しなかったものの、多くはVue + TypeScriptプロジェクトにおいて推奨される設定です。特に以下の設定は、そのまま残しておくことをお勧めします。
+
+"resolveJsonModule": true
+
+"esModuleInterop": true
+
+"module": "ESNext"
+
+"moduleResolution": "bundler" (または node)
+
+"types": ["vite/client"]
+
+これらの設定は、直接実行時に型チェックが成功していることから、正しく構成されていると判断できます。
+
+5. まとめ
+lint-staged の挙動を理解し、ファイルパスを vue-tsc に渡さないように設定を修正することが解決の鍵です。まずは「推奨される解決策」を試してください。 これにより、pre-commit hookが意図通りに機能し、コミット前の品質チェックが確実に行われるようになります。

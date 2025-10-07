@@ -20,4 +20,7 @@ export interface GameState {
   dealtCards: ConditionCard[];
   selectedPairs: Record<string, SelectedPair>;
   generatedTitle: string;
+  generatedPoem: string;
+  isGeneratingPoem: boolean;
+  poemGenerationError: string | null;
 }
