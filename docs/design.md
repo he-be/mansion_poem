@@ -8,6 +8,7 @@
 - **状態管理**: Pinia（Vue 3公式推奨）
 - **ルーティング**: Vue Router
 - **スタイリング**: CSS Modules または Scoped CSS
+- **LLM統合**: Google Gemini Flash API (gemini-flash-latest) - 最終ポエム生成
 
 ### 1.2. アーキテクチャパターン
 - **コンポーネントベースアーキテクチャ**: 再利用可能なVueコンポーネント
@@ -27,7 +28,8 @@ mansion_poem/
 │   │   ├── modals/
 │   │   │   └── PoemSelectionModal.vue
 │   │   └── common/
-│   │       └── AppButton.vue
+│   │       ├── AppButton.vue
+│   │       └── LoadingSpinner.vue
 │   ├── views/              # ページコンポーネント
 │   │   ├── StartView.vue
 │   │   ├── GameView.vue
@@ -40,7 +42,10 @@ mansion_poem/
 │   │   └── cards.json
 │   ├── utils/              # ユーティリティ関数
 │   │   ├── cardSelector.ts
-│   │   └── titleGenerator.ts
+│   │   ├── titleGenerator.ts
+│   │   └── geminiClient.ts
+│   ├── scripts/            # ビルド・データ生成スクリプト
+│   │   └── generateCards.ts
 │   ├── router/             # ルーティング設定
 │   │   └── index.ts
 │   ├── App.vue
@@ -48,11 +53,17 @@ mansion_poem/
 ├── public/
 ├── docs/
 │   ├── requirements.txt
-│   └── design.md
+│   ├── design.md
+│   ├── implementation_plan.md
+│   └── card_1007.txt
+├── scripts/                # Node.jsスクリプト
+│   └── convertCardsData.js
 ├── index.html
 ├── package.json
 ├── tsconfig.json
-└── vite.config.ts
+├── vite.config.ts
+├── .env.example
+└── .env (git ignored)
 ```
 
 ## 3. データモデル
@@ -97,6 +108,15 @@ export interface GameState {
 
   // 生成されたチラシのタイトル
   generatedTitle: string;
+
+  // LLMによって生成されたポエム本文
+  generatedPoem: string;
+
+  // LLM生成中のローディング状態
+  isGeneratingPoem: boolean;
+
+  // LLM生成エラー
+  poemGenerationError: string | null;
 }
 ```
 
@@ -141,10 +161,15 @@ export interface GameState {
 - **UI要素**:
   - 生成されたタイトル
   - 5組の条件×ポエムリスト
+  - LLMによって生成されたポエム本文
+  - エラー時: エラーメッセージと「再生成する」ボタン
   - 締めの一文
   - 「もう一度創造する」ボタン
+- **状態**:
+  - ローディング表示（`isGeneratingPoem`）
 - **アクション**:
-  - ボタンクリック → `gameStore.reset()` → StartViewへ遷移
+  - 「もう一度創造する」ボタンクリック → `gameStore.reset()` → StartViewへ遷移
+  - 「再生成する」ボタンクリック → `gameStore.retryPoemGeneration()`
 
 ### 5.4. コンポーネント間のデータフロー
 
@@ -160,7 +185,22 @@ GameStore.selectPoem(conditionId, poemId)
 
 ## 6. 主要ロジック
 
-### 6.1. カードのランダム選択（cardSelector.ts）
+### 6.1. カードデータ生成（scripts/convertCardsData.js）
+
+**目的**: `docs/card_1007.txt` から JSON形式のカードデータを生成
+
+**実装方針**:
+1. card_1007.txt をパースして、カテゴリごとにカードを抽出
+2. 各カードに一意のIDを付与
+3. `src/data/cards.json` として出力
+
+```javascript
+// scripts/convertCardsData.js
+// card_1007.txt をパースして cards.json を生成するスクリプト
+// npm run generate-cards で実行
+```
+
+### 6.2. カードのランダム選択（cardSelector.ts）
 
 ```typescript
 export function selectRandomCards(
@@ -202,7 +242,91 @@ export function generateTitle(selectedPairs: SelectedPair[]): string {
 }
 ```
 
-### 6.3. ゲーム状態管理（gameStore.ts）
+### 6.3. Gemini Flash APIクライアント（geminiClient.ts）
+
+**目的**: Google Gemini Flash APIを使用してマンションポエムを生成
+
+**実装方針**:
+1. 環境変数から APIキーを取得
+2. 選択されたカードペアからプロンプトを構築
+3. gemini-flash-latest モデルにリクエスト送信
+4. 生成されたポエムを返却
+
+```typescript
+// utils/geminiClient.ts
+
+export interface GeneratePoemOptions {
+  selectedPairs: SelectedPair[];
+}
+
+export async function generatePoemWithGemini(
+  options: GeneratePoemOptions
+): Promise<string> {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error('Gemini API key is not configured');
+  }
+
+  // プロンプト構築
+  const prompt = buildPrompt(options.selectedPairs);
+
+  // API呼び出し
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }]
+      })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Gemini API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+  if (!generatedText) {
+    throw new Error('No text generated from Gemini API');
+  }
+
+  return generatedText;
+}
+
+function buildPrompt(selectedPairs: SelectedPair[]): string {
+  const pairsList = selectedPairs
+    .map((pair, index) =>
+      `${index + 1}. 条件: ${pair.conditionCard.condition_text} → ポエム: ${pair.selectedPoem.poem_text}`
+    )
+    .join('\n');
+
+  return `あなたは不動産チラシのコピーライターです。以下の条件とポエムの組み合わせから、魅力的なマンションのチラシ本文を生成してください。
+
+【選択されたカードペア】
+${pairsList}
+
+【要件】
+- 文体は詩的で格調高く、不動産広告らしい言い回しを使用してください
+- 上記の条件とポエムの組み合わせの魅力を最大限に引き出してください
+- 200〜400文字程度で記述してください
+- マンションの魅力を感じさせる、印象的な文章にしてください
+
+【出力】
+チラシ本文のみを出力してください（説明や前置きは不要です）`;
+}
+```
+
+### 6.4. ゲーム状態管理（gameStore.ts）
 
 ```typescript
 // stores/gameStore.ts
@@ -218,6 +342,9 @@ export const useGameStore = defineStore('game', {
     dealtCards: [],
     selectedPairs: new Map(),
     generatedTitle: '',
+    generatedPoem: '',
+    isGeneratingPoem: false,
+    poemGenerationError: null,
   }),
 
   getters: {
@@ -245,9 +372,47 @@ export const useGameStore = defineStore('game', {
       }
     },
 
-    generateFlyer() {
+    async generateFlyer() {
+      // タイトル生成（ルールベース）
       this.generatedTitle = generateTitle(this.selectedPairsArray);
-      this.currentPhase = 'result';
+
+      // LLMによるポエム生成
+      this.isGeneratingPoem = true;
+      this.poemGenerationError = null;
+
+      try {
+        this.generatedPoem = await generatePoemWithGemini({
+          selectedPairs: this.selectedPairsArray,
+        });
+        this.currentPhase = 'result';
+      } catch (error) {
+        this.poemGenerationError = error instanceof Error
+          ? error.message
+          : 'ポエムの生成に失敗しました';
+        // エラー時はデフォルトメッセージを使用
+        this.generatedPoem = 'あなたの選んだ言葉が、新しい物語を紡ぎます。';
+        this.currentPhase = 'result';
+      } finally {
+        this.isGeneratingPoem = false;
+      }
+    },
+
+    async retryPoemGeneration() {
+      this.isGeneratingPoem = true;
+      this.poemGenerationError = null;
+
+      try {
+        this.generatedPoem = await generatePoemWithGemini({
+          selectedPairs: this.selectedPairsArray,
+        });
+      } catch (error) {
+        this.poemGenerationError = error instanceof Error
+          ? error.message
+          : 'ポエムの生成に失敗しました';
+        this.generatedPoem = 'あなたの選んだ言葉が、新しい物語を紡ぎます。';
+      } finally {
+        this.isGeneratingPoem = false;
+      }
     },
 
     reset() {
@@ -255,6 +420,9 @@ export const useGameStore = defineStore('game', {
       this.dealtCards = [];
       this.selectedPairs.clear();
       this.generatedTitle = '';
+      this.generatedPoem = '';
+      this.isGeneratingPoem = false;
+      this.poemGenerationError = null;
     },
   },
 });
