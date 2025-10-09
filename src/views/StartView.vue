@@ -3,11 +3,12 @@
     <div class="start-content">
       <h1 class="start-title">マンションポエマー</h1>
       <p class="start-description">
-        ままならない現実を、<br />
-        詩的な言葉で言い換える。
+        現実という名の素材を、<br />
+        言葉という名の芸術へ。<br />
+        <span class="start-subtitle">ここから始まる、あなただけの物語。</span>
       </p>
       <AppButton
-        label="創造を開始する"
+        label="物語を紡ぐ"
         variant="primary"
         @click="handleStart"
       />
@@ -47,15 +48,27 @@ const handleStart = () => {
 .start-title {
   font-size: 3rem;
   font-weight: 700;
-  margin-bottom: 1.5rem;
-  letter-spacing: 0.05em;
+  margin-bottom: 2rem;
+  letter-spacing: 0.1em;
+  color: #d4af37;
+  text-shadow: 0 2px 12px rgba(212, 175, 55, 0.5);
 }
 
 .start-description {
-  font-size: 1.25rem;
-  line-height: 1.8;
+  font-size: 1.35rem;
+  line-height: 2.2;
   margin-bottom: 3rem;
-  opacity: 0.9;
+  opacity: 0.95;
+  letter-spacing: 0.05em;
+}
+
+.start-subtitle {
+  display: block;
+  margin-top: 1.5rem;
+  font-size: 1.1rem;
+  font-style: italic;
+  opacity: 0.8;
+  letter-spacing: 0.03em;
 }
 
 @media (max-width: 768px) {

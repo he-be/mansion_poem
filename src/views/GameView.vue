@@ -2,9 +2,10 @@
   <div class="game-view">
     <div class="game-container">
       <header class="game-header">
-        <h1 class="game-title">カードを選んでください</h1>
+        <h1 class="game-title">言葉の選択</h1>
         <p class="game-instruction">
-          各条件カードをクリックして、ポエムを選択してください（5枚中{{ selectedCount }}枚選択済み）
+          五つの条件から、心に響く言葉を選ぶ。<br />
+          <span class="selection-status">{{ selectedCount }}/5 の物語が選ばれました。</span>
         </p>
       </header>
 
@@ -23,7 +24,7 @@
         />
         <AppButton
           v-else
-          label="チラシを生成する"
+          label="物語を完成させる"
           :disabled="!gameStore.isAllSelected || gameStore.isGeneratingPoem"
           @click="handleGenerateFlyer"
         />
@@ -100,17 +101,28 @@ const handleGenerateFlyer = async () => {
 }
 
 .game-title {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 700;
   color: #d4af37;
-  margin-bottom: 1rem;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.15em;
+  text-shadow: 0 2px 12px rgba(212, 175, 55, 0.5);
 }
 
 .game-instruction {
-  font-size: 1.1rem;
-  color: #e0e0e0;
+  font-size: 1.2rem;
+  color: #f5e6d3;
   margin: 0;
+  line-height: 2;
+  letter-spacing: 0.05em;
+}
+
+.selection-status {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 1rem;
+  color: #d4af37;
+  font-style: italic;
 }
 
 .game-content {
