@@ -138,6 +138,10 @@ const handleRetry = async () => {
   line-height: 2;
   max-width: 900px;
   white-space: pre-wrap;
+  word-break: keep-all;        /* 単語の途中で改行しない */
+  line-break: strict;          /* 日本語の禁則処理を厳格に適用 */
+  overflow-wrap: break-word;   /* 長すぎる単語のみ改行 */
+  hanging-punctuation: force-end; /* 句読点を行末に配置 */
   letter-spacing: 0.05em;
   margin: 0;
 }
