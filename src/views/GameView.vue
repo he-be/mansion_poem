@@ -85,7 +85,7 @@ const handleGenerateFlyer = async () => {
 <style scoped>
 .game-view {
   min-height: 100vh;
-  background-color: #f7fafc;
+  background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 50%, #16213e 100%);
   padding: 2rem;
 }
 
@@ -102,13 +102,14 @@ const handleGenerateFlyer = async () => {
 .game-title {
   font-size: 2rem;
   font-weight: 700;
-  color: #2d3748;
+  color: #d4af37;
   margin-bottom: 1rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .game-instruction {
   font-size: 1.1rem;
-  color: #718096;
+  color: #e0e0e0;
   margin: 0;
 }
 
