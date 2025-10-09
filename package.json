@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "generate-cards": "node scripts/convertCardsData.js",
     "typecheck": "vue-tsc --noEmit --skipLibCheck",
-    "prepare": "husky"
+    "prepare": "husky",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "pinia": "^2.3.0",
@@ -17,13 +18,15 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251008.0",
     "@types/node": "^22.10.6",
     "@vitejs/plugin-vue": "^5.2.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.3",
     "typescript": "^5.7.3",
     "vite": "^6.0.7",
-    "vue-tsc": "^2.2.0"
+    "vue-tsc": "^2.2.0",
+    "wrangler": "^4.42.1"
   },
   "lint-staged": {
     "*.{ts,tsx,vue}": "bash -c 'npm run typecheck'"

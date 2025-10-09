@@ -1,0 +1,20 @@
+name = "masahiro-hibi"
+main = "src/worker.ts"
+compatibility_date = "2025-10-09"
+compatibility_flags = ["nodejs_compat"]
+
+# Static Assets設定
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+# Secrets Store バインディング
+# 注意: YOUR_STORE_ID は Cloudflare Dashboard の Secrets Store から取得してください
+[[secrets_store_secrets]]
+binding = "GEMINI_API_KEY"
+store_id = "b8ffbf7dcbf34210b9bf420d54c0fdaa"  # ← ダッシュボードから取得して置き換える
+secret_name = "GEMINI_API_KEY"
+
+# Workers.dev サブドメイン設定
+workers_dev = true
