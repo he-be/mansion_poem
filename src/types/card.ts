@@ -7,6 +7,7 @@ export interface ConditionCard {
   id: string;
   category: string;
   condition_text: string;
+  strength: number; // -6 to +5: negative = weakness, positive = strength
   poems: PoemOption[];
 }
 

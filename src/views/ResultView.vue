@@ -122,6 +122,7 @@ const handleRetry = async () => {
   justify-content: center;
   padding: 4rem 2rem;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .poem-title {

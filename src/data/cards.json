@@ -3,6 +3,7 @@
     "id": "condition-001",
     "category": "交通アクセス",
     "condition_text": "駅徒歩15分",
+    "strength": -2,
     "poems": [
       { "id": "poem-001-a", "poem_text": "都心と程よい距離を保つ、静寂の丘。" },
       { "id": "poem-001-b", "poem_text": "喧騒から解放される、心地よい道のり。" },
@@ -13,6 +14,7 @@
     "id": "condition-002",
     "category": "交通アクセス",
     "condition_text": "駅徒歩25分",
+    "strength": -3,
     "poems": [
       { "id": "poem-002-a", "poem_text": "人生は、時に回り道も悪くない。" },
       { "id": "poem-002-b", "poem_text": "都市の喧騒から離れた、自分だけの時間。" },
@@ -23,6 +25,7 @@
     "id": "condition-003",
     "category": "交通アクセス",
     "condition_text": "駅からバス10分",
+    "strength": -3,
     "poems": [
       { "id": "poem-003-a", "poem_text": "駅の喧騒から離れ、邸宅へと誘うプライベートライン。" },
       { "id": "poem-003-b", "poem_text": "移動時間さえも、読書やリラックスの場に。" },
@@ -32,6 +35,7 @@
   {
     "id": "condition-004",
     "category": "交通アクセス",
+    "strength": -2,
     "condition_text": "坂の多い立地",
     "poems": [
       { "id": "poem-004-a", "poem_text": "この丘ならではの開放感を享受する。" },
@@ -43,6 +47,7 @@
     "id": "condition-005",
     "category": "交通アクセス",
     "condition_text": "急な坂の上",
+    "strength": -4,
     "poems": [
       { "id": "poem-005-a", "poem_text": "天空に最も近い、選ばれし者だけが許される舞台。" },
       { "id": "poem-005-b", "poem_text": "雲の上に住まう、神話的な生活空間。" },
@@ -53,6 +58,7 @@
     "id": "condition-031",
     "category": "交通アクセス",
     "condition_text": "最寄り駅まで徒歩40分",
+    "strength": -5,
     "poems": [
       { "id": "poem-031-a", "poem_text": "都市との距離が、豊かさの証明。" },
       { "id": "poem-031-b", "poem_text": "歩く時間さえも、人生の資産になる。" },
@@ -63,6 +69,7 @@
     "id": "condition-032",
     "category": "交通アクセス",
     "condition_text": "バス便のみ（1時間に2本）",
+    "strength": -6,
     "poems": [
       { "id": "poem-032-a", "poem_text": "時刻表に縛られぬ、自由な精神を育む。" },
       { "id": "poem-032-b", "poem_text": "待つことを知る、成熟した大人の余裕。" },
@@ -73,6 +80,7 @@
     "id": "condition-033",
     "category": "交通アクセス",
     "condition_text": "幹線道路沿い",
+    "strength": -2,
     "poems": [
       { "id": "poem-033-a", "poem_text": "都市の鼓動を感じる、最前列の特等席。" },
       { "id": "poem-033-b", "poem_text": "流れゆく光の軌跡が、夜を彩る。" },
@@ -83,6 +91,7 @@
     "id": "condition-034",
     "category": "交通アクセス",
     "condition_text": "最寄り駅が無人駅",
+    "strength": -3,
     "poems": [
       { "id": "poem-034-a", "poem_text": "余計なものを削ぎ落とした、純粋な移動体験。" },
       { "id": "poem-034-b", "poem_text": "静謐な朝を、誰にも邪魔されず迎える。" },
@@ -93,6 +102,7 @@
     "id": "condition-035",
     "category": "交通アクセス",
     "condition_text": "終電が早い路線",
+    "strength": -1,
     "poems": [
       { "id": "poem-035-a", "poem_text": "夜を大切にする、知的な生活習慣。" },
       { "id": "poem-035-b", "poem_text": "早寝早起きという、健康への自然な誘い。" },
@@ -103,6 +113,7 @@
     "id": "condition-006",
     "category": "周辺環境",
     "condition_text": "周辺に商業施設が少ない",
+    "strength": -2,
     "poems": [
       { "id": "poem-006-a", "poem_text": "飾らない。だが、すべてがある。" },
       { "id": "poem-006-b", "poem_text": "本当に必要なものだけを選ぶ、ミニマルな暮らし。" },
@@ -113,6 +124,7 @@
     "id": "condition-007",
     "category": "周辺環境",
     "condition_text": "コンビニまで徒歩10分",
+    "strength": -1,
     "poems": [
       { "id": "poem-007-a", "poem_text": "デジタルデトックスを嗜む、静穏な日々。" },
       { "id": "poem-007-b", "poem_text": "便利さと静けさの、絶妙なバランス。" },
@@ -123,6 +135,7 @@
     "id": "condition-008",
     "category": "周辺環境",
     "condition_text": "線路沿い",
+    "strength": -3,
     "poems": [
       { "id": "poem-008-a", "poem_text": "都市の躍動をBGMに、眠らない日常を生きる。" },
       { "id": "poem-008-b", "poem_text": "時を刻む列車の音が、リズムを生む。" },
@@ -133,6 +146,7 @@
     "id": "condition-009",
     "category": "周辺環境",
     "condition_text": "小学校が隣",
+    "strength": -1,
     "poems": [
       { "id": "poem-009-a", "poem_text": "未来の才能を育む、希望の音色に包まれて。" },
       { "id": "poem-009-b", "poem_text": "子どもたちの笑い声が、日々に活力を与える。" },
@@ -143,6 +157,7 @@
     "id": "condition-010",
     "category": "周辺環境",
     "condition_text": "墓地が近い",
+    "strength": -5,
     "poems": [
       { "id": "poem-010-a", "poem_text": "聖域に隣接し、生命の輝きを知る。" },
       { "id": "poem-010-b", "poem_text": "静寂と厳かさが、精神性を高める。" },
@@ -153,6 +168,7 @@
     "id": "condition-011",
     "category": "周辺環境",
     "condition_text": "繁華街の真ん中",
+    "strength": -1,
     "poems": [
       { "id": "poem-011-a", "poem_text": "煌めきを纏い、24時間をデザインする。" },
       { "id": "poem-011-b", "poem_text": "都市の心臓部で、時代の最先端を生きる。" },
@@ -163,6 +179,7 @@
     "id": "condition-012",
     "category": "周辺環境",
     "condition_text": "神社仏閣が近い",
+    "strength": 3,
     "poems": [
       { "id": "poem-012-a", "poem_text": "聖域の杜に寄り添い、悠久の歴史を纏う。" },
       { "id": "poem-012-b", "poem_text": "古の叡智に守られた、スピリチュアルな空間。" },
@@ -173,6 +190,7 @@
     "id": "condition-036",
     "category": "周辺環境",
     "condition_text": "工場地帯に隣接",
+    "strength": -4,
     "poems": [
       { "id": "poem-036-a", "poem_text": "ものづくりの息吹を感じる、産業という詩。" },
       { "id": "poem-036-b", "poem_text": "働く人々の営みが、日常に活力を注ぐ。" },
@@ -183,6 +201,7 @@
     "id": "condition-037",
     "category": "周辺環境",
     "condition_text": "下町の密集地",
+    "strength": -2,
     "poems": [
       { "id": "poem-037-a", "poem_text": "人情という、失われつつある価値がここに。" },
       { "id": "poem-037-b", "poem_text": "路地裏が紡ぐ、江戸から続く物語。" },
@@ -193,6 +212,7 @@
     "id": "condition-038",
     "category": "周辺環境",
     "condition_text": "眺望なし（隣接建物で視界遮られる）",
+    "strength": -2,
     "poems": [
       { "id": "poem-038-a", "poem_text": "外に求めぬ、内なる豊かさの探求。" },
       { "id": "poem-038-b", "poem_text": "プライバシーという、見えない贅沢。" },
@@ -203,6 +223,7 @@
     "id": "condition-039",
     "category": "周辺環境",
     "condition_text": "高速道路の高架下",
+    "strength": -6,
     "poems": [
       { "id": "poem-039-a", "poem_text": "現代建築の巨大なキャンバスに、住まう。" },
       { "id": "poem-039-b", "poem_text": "雨音を遮る天蓋が、静寂を守護する。" },
@@ -213,6 +234,7 @@
     "id": "condition-040",
     "category": "周辺環境",
     "condition_text": "スーパーまで車で15分",
+    "strength": -3,
     "poems": [
       { "id": "poem-040-a", "poem_text": "計画的な暮らしが、無駄を削ぐ。" },
       { "id": "poem-040-b", "poem_text": "週末の買い出しが、家族の儀式になる。" },
@@ -223,6 +245,7 @@
     "id": "condition-041",
     "category": "周辺環境",
     "condition_text": "パチンコ店が近い",
+    "strength": -4,
     "poems": [
       { "id": "poem-041-a", "poem_text": "多様性を受け入れる、成熟した街の証。" },
       { "id": "poem-041-b", "poem_text": "24時間営業の明かりが、帰路を照らす。" },
@@ -233,6 +256,7 @@
     "id": "condition-042",
     "category": "周辺環境",
     "condition_text": "近隣に空き家が多い",
+    "strength": -2,
     "poems": [
       { "id": "poem-042-a", "poem_text": "静けさという、何物にも代えがたい資産。" },
       { "id": "poem-042-b", "poem_text": "プライベート感を極めた、孤高の住環境。" },
@@ -243,6 +267,7 @@
     "id": "condition-043",
     "category": "周辺環境",
     "condition_text": "河川敷に隣接",
+    "strength": -1,
     "poems": [
       { "id": "poem-043-a", "poem_text": "水という自然が、都市に描く風景画。" },
       { "id": "poem-043-b", "poem_text": "四季の移ろいを映す、流れる時の鏡。" },
@@ -253,6 +278,7 @@
     "id": "condition-013",
     "category": "建物・デザイン",
     "condition_text": "タワーマンション",
+    "strength": 4,
     "poems": [
       { "id": "poem-013-a", "poem_text": "天空の静寂を掌中に収める、天空邸宅。" },
       { "id": "poem-013-b", "poem_text": "雲の上から街を見下ろす、現代の城。" },
@@ -263,6 +289,7 @@
     "id": "condition-014",
     "category": "建物・デザイン",
     "condition_text": "低層レジデンス",
+    "strength": 2,
     "poems": [
       { "id": "poem-014-a", "poem_text": "大地に寄り添い、空の広さを知る、謙虚にして気高き邸。" },
       { "id": "poem-014-b", "poem_text": "ヒューマンスケールで紡ぐ、温もりのある暮らし。" },
@@ -273,6 +300,7 @@
     "id": "condition-015",
     "category": "建物・デザイン",
     "condition_text": "特徴のない外観",
+    "strength": -1,
     "poems": [
       { "id": "poem-015-a", "poem_text": "奇をてらわない、正統という名の美学。" },
       { "id": "poem-015-b", "poem_text": "シンプルの中に宿る、本物の価値。" },
@@ -283,6 +311,7 @@
     "id": "condition-016",
     "category": "建物・デザイン",
     "condition_text": "コンクリート打ちっ放し",
+    "strength": 2,
     "poems": [
       { "id": "poem-016-a", "poem_text": "素材の本質と向き合う、研ぎ澄まされた感性の証。" },
       { "id": "poem-016-b", "poem_text": "インダストリアルな美が宿る、アートな空間。" },
@@ -293,6 +322,7 @@
     "id": "condition-017",
     "category": "建物・デザイン",
     "condition_text": "有名建築家監修",
+    "strength": 5,
     "poems": [
       { "id": "poem-017-a", "poem_text": "巨匠の精神を受け継ぐ、唯一無二のアートピース。" },
       { "id": "poem-017-b", "poem_text": "建築史に名を刻む、永遠の傑作。" },
@@ -303,6 +333,7 @@
     "id": "condition-044",
     "category": "建物・デザイン",
     "condition_text": "築40年超",
+    "strength": -5,
     "poems": [
       { "id": "poem-044-a", "poem_text": "時を重ねた建築が持つ、風格という資産。" },
       { "id": "poem-044-b", "poem_text": "ヴィンテージという言葉が、最も似合う佇まい。" },
@@ -313,6 +344,7 @@
     "id": "condition-045",
     "category": "建物・デザイン",
     "condition_text": "エレベーターなし5階建て",
+    "strength": -6,
     "poems": [
       { "id": "poem-045-a", "poem_text": "階段という日常が、健康を約束する。" },
       { "id": "poem-045-b", "poem_text": "上る度に実感する、住まうことの覚悟。" },
@@ -323,6 +355,7 @@
     "id": "condition-046",
     "category": "建物・デザイン",
     "condition_text": "外壁にヒビ・剥離あり",
+    "strength": -3,
     "poems": [
       { "id": "poem-046-a", "poem_text": "時の刻印が、独自の表情を生む。" },
       { "id": "poem-046-b", "poem_text": "完璧を求めぬ、侘び寂びの美学。" },
@@ -333,6 +366,7 @@
     "id": "condition-047",
     "category": "建物・デザイン",
     "condition_text": "狭小3階建て",
+    "strength": -4,
     "poems": [
       { "id": "poem-047-a", "poem_text": "縦に伸びる空間が、都市の知恵を体現する。" },
       { "id": "poem-047-b", "poem_text": "コンパクトという、現代の最適解。" },
@@ -343,6 +377,7 @@
     "id": "condition-048",
     "category": "建物・デザイン",
     "condition_text": "角地でない旗竿地",
+    "strength": -2,
     "poems": [
       { "id": "poem-048-a", "poem_text": "通りから離れた、隠れ家的プライバシー。" },
       { "id": "poem-048-b", "poem_text": "奥まった立地が生む、特別な領域感。" },
@@ -353,6 +388,7 @@
     "id": "condition-049",
     "category": "建物・デザイン",
     "condition_text": "外廊下型",
+    "strength": -1,
     "poems": [
       { "id": "poem-049-a", "poem_text": "四季を感じながら帰宅する、風情ある日常。" },
       { "id": "poem-049-b", "poem_text": "開放的な動線が、心を軽くする。" },
@@ -363,6 +399,7 @@
     "id": "condition-050",
     "category": "建物・デザイン",
     "condition_text": "戸数が多い（300戸超）",
+    "strength": 2,
     "poems": [
       { "id": "poem-050-a", "poem_text": "多様な人生が交差する、小さな都市。" },
       { "id": "poem-050-b", "poem_text": "スケールメリットが生む、上質な共用空間。" },
@@ -373,6 +410,7 @@
     "id": "condition-051",
     "category": "建物・デザイン",
     "condition_text": "ワンルームマンション専用",
+    "strength": -1,
     "poems": [
       { "id": "poem-051-a", "poem_text": "ひとり暮らしを極める、洗練された空間設計。" },
       { "id": "poem-051-b", "poem_text": "独身という生き方に、最適化された環境。" },
@@ -383,6 +421,7 @@
     "id": "condition-018",
     "category": "共用設備",
     "condition_text": "共用設備は特にない",
+    "strength": -1,
     "poems": [
       { "id": "poem-018-a", "poem_text": "私的領域の純度を高めた、ミニマリズムの思想。" },
       { "id": "poem-018-b", "poem_text": "無駄を省いた、管理費の合理性。" },
@@ -393,6 +432,7 @@
     "id": "condition-019",
     "category": "共用設備",
     "condition_text": "豪華なエントランス",
+    "strength": 4,
     "poems": [
       { "id": "poem-019-a", "poem_text": "日常から非日常へ。心を切り替えるための壮麗なる結界。" },
       { "id": "poem-019-b", "poem_text": "訪れる人すべてを魅了する、圧倒的な第一印象。" },
@@ -403,6 +443,7 @@
     "id": "condition-020",
     "category": "共用設備",
     "condition_text": "フィットネスジム完備",
+    "strength": 3,
     "poems": [
       { "id": "poem-020-a", "poem_text": "智慧と肉体を磨き上げる、自己実現のための空間。" },
       { "id": "poem-020-b", "poem_text": "外出不要、理想のボディを手に入れる効率性。" },
@@ -413,6 +454,7 @@
     "id": "condition-021",
     "category": "共用設備",
     "condition_text": "コンシェルジュサービス",
+    "strength": 4,
     "poems": [
       { "id": "poem-021-a", "poem_text": "ホテルライクな日常が、住まう人の誇りを満たす。" },
       { "id": "poem-021-b", "poem_text": "あらゆるニーズに応える、上質なおもてなし。" },
@@ -423,6 +465,7 @@
     "id": "condition-052",
     "category": "共用設備",
     "condition_text": "駐車場なし",
+    "strength": -2,
     "poems": [
       { "id": "poem-052-a", "poem_text": "車を持たない生き方という、新しい選択。" },
       { "id": "poem-052-b", "poem_text": "公共交通機関と共に生きる、エコな日常。" },
@@ -433,6 +476,7 @@
     "id": "condition-053",
     "category": "共用設備",
     "condition_text": "宅配ボックスなし",
+    "strength": -2,
     "poems": [
       { "id": "poem-053-a", "poem_text": "対面で受け取る、人との繋がりを大切にする。" },
       { "id": "poem-053-b", "poem_text": "在宅を前提とした、ゆとりある時間設計。" },
@@ -443,6 +487,7 @@
     "id": "condition-054",
     "category": "共用設備",
     "condition_text": "管理人不在",
+    "strength": -4,
     "poems": [
       { "id": "poem-054-a", "poem_text": "住人同士の自律が、コミュニティを育む。" },
       { "id": "poem-054-b", "poem_text": "管理費を抑えた、合理的な運営。" },
@@ -453,6 +498,7 @@
     "id": "condition-055",
     "category": "共用設備",
     "condition_text": "ゴミ置き場が外（24時間不可）",
+    "strength": -1,
     "poems": [
       { "id": "poem-055-a", "poem_text": "朝のルーティンが、規則正しい生活を作る。" },
       { "id": "poem-055-b", "poem_text": "ご近所との挨拶が、自然に生まれる仕組み。" },
@@ -463,6 +509,7 @@
     "id": "condition-022",
     "category": "室内・仕様",
     "condition_text": "南向き住戸",
+    "strength": 3,
     "poems": [
       { "id": "poem-022-a", "poem_text": "光を招き入れる設計思想。" },
       { "id": "poem-022-b", "poem_text": "朝日と共に目覚め、夕日に感謝する暮らし。" },
@@ -473,6 +520,7 @@
     "id": "condition-023",
     "category": "室内・仕様",
     "condition_text": "北向きの部屋",
+    "strength": -2,
     "poems": [
       { "id": "poem-023-a", "poem_text": "柔らかな安定した光が、知的な創造性を刺激するアトリエ。" },
       { "id": "poem-023-b", "poem_text": "眩しさのない、集中できる空間。" },
@@ -483,6 +531,7 @@
     "id": "condition-025",
     "category": "室内・仕様",
     "condition_text": "収納が少ない",
+    "strength": -2,
     "poems": [
       { "id": "poem-025-a", "poem_text": "「持たない豊かさ」を実践する、洗練されたミニマリストへ。" },
       { "id": "poem-025-b", "poem_text": "本当に大切なものだけを選ぶ、厳選された生活。" },
@@ -493,6 +542,7 @@
     "id": "condition-026",
     "category": "室内・仕様",
     "condition_text": "3点ユニットバス",
+    "strength": -3,
     "poems": [
       { "id": "poem-026-a", "poem_text": "機能性を追求した、合理主義の結晶。" },
       { "id": "poem-026-b", "poem_text": "掃除のしやすさも、暮らしのデザインのひとつ。" },
@@ -503,6 +553,7 @@
     "id": "condition-027",
     "category": "室内・仕様",
     "condition_text": "ウォークインクローゼット",
+    "strength": 3,
     "poems": [
       { "id": "poem-027-a", "poem_text": "四季の装いを美しく収める、人生のコレクションステージ。" },
       { "id": "poem-027-b", "poem_text": "朝の身支度が、特別な儀式になる空間。" },
@@ -513,6 +564,7 @@
     "id": "condition-058",
     "category": "室内・仕様",
     "condition_text": "キッチン1口コンロ",
+    "strength": -3,
     "poems": [
       { "id": "poem-058-a", "poem_text": "シンプルな調理が、料理の本質を研ぎ澄ます。" },
       { "id": "poem-058-b", "poem_text": "制約という名の創造性を、育む厨房。" },
@@ -523,6 +575,7 @@
     "id": "condition-059",
     "category": "室内・仕様",
     "condition_text": "和室がメイン",
+    "strength": -1,
     "poems": [
       { "id": "poem-059-a", "poem_text": "畳の香りに包まれる、日本人の原風景。" },
       { "id": "poem-059-b", "poem_text": "床に座る文化が、心を落ち着かせる。" },
@@ -533,6 +586,7 @@
     "id": "condition-060",
     "category": "室内・仕様",
     "condition_text": "天井が低い（2.1m）",
+    "strength": -2,
     "poems": [
       { "id": "poem-060-a", "poem_text": "包まれるような安心感を、空間が生む。" },
       { "id": "poem-060-b", "poem_text": "低い天井が作る、親密な雰囲気。" },
@@ -543,6 +597,7 @@
     "id": "condition-061",
     "category": "室内・仕様",
     "condition_text": "角部屋でない中部屋",
+    "strength": -1,
     "poems": [
       { "id": "poem-061-a", "poem_text": "両隣に守られた、温かな断熱性。" },
       { "id": "poem-061-b", "poem_text": "冷暖房費を抑える、自然の知恵。" },
@@ -553,6 +608,7 @@
     "id": "condition-062",
     "category": "室内・仕様",
     "condition_text": "窓が小さい",
+    "strength": -2,
     "poems": [
       { "id": "poem-062-a", "poem_text": "外界を選んで切り取る、額縁のような窓。" },
       { "id": "poem-062-b", "poem_text": "プライバシーという、都会の必需品。" },
@@ -563,6 +619,7 @@
     "id": "condition-064",
     "category": "室内・仕様",
     "condition_text": "洗濯機置き場がベランダ",
+    "strength": -3,
     "poems": [
       { "id": "poem-064-a", "poem_text": "外干しという、太陽の恵みを最大活用。" },
       { "id": "poem-064-b", "poem_text": "洗濯動線を極限まで短縮した、合理性。" },
@@ -571,8 +628,9 @@
   },
   {
     "id": "condition-028",
-    "category": "ライフスタイル・コンセプト",
+    "category": "コンセプト",
     "condition_text": "ペット可",
+    "strength": 2,
     "poems": [
       { "id": "poem-028-a", "poem_text": "大切な家族と暮らせる、安心の環境。" },
       { "id": "poem-028-b", "poem_text": "愛するパートナーと共に、豊かな時間を紡ぐ。" },
@@ -581,8 +639,9 @@
   },
   {
     "id": "condition-029",
-    "category": "ライフスタイル・コンセプト",
+    "category": "コンセプト",
     "condition_text": "SOHO・事務所利用可",
+    "strength": 2,
     "poems": [
       { "id": "poem-029-a", "poem_text": "公と私を華麗に横断する、境界のないワークスタイル。" },
       { "id": "poem-029-b", "poem_text": "通勤時間ゼロ、生産性を最大化する住環境。" },
@@ -591,8 +650,9 @@
   },
   {
     "id": "condition-030",
-    "category": "ライフスタイル・コンセプト",
+    "category": "コンセプト",
     "condition_text": "ZEH-M（ゼッチ）",
+    "strength": 4,
     "poems": [
       { "id": "poem-030-a", "poem_text": "地球の未来に貢献する、知性という名のラグジュアリー。" },
       { "id": "poem-030-b", "poem_text": "持続可能な暮らしが、次世代への責任。" },
@@ -600,19 +660,10 @@
     ]
   },
   {
-    "id": "condition-066",
-    "category": "ライフスタイル・コンセプト",
-    "condition_text": "外国人入居者が多い",
-    "poems": [
-      { "id": "poem-066-a", "poem_text": "多様性という、グローバル時代の資産。" },
-      { "id": "poem-066-b", "poem_text": "異文化が交差する、刺激的なコミュニティ。" },
-      { "id": "poem-066-c", "poem_text": "世界を日常にする、ボーダレスな暮らし。" }
-    ]
-  },
-  {
     "id": "condition-067",
-    "category": "ライフスタイル・コンセプト",
+    "category": "コンセプト",
     "condition_text": "学生専用",
+    "strength": -1,
     "poems": [
       { "id": "poem-067-a", "poem_text": "若さという特権を、謳歌する空間。" },
       { "id": "poem-067-b", "poem_text": "同世代が集う、青春のキャンパス。" },
@@ -621,8 +672,9 @@
   },
   {
     "id": "condition-068",
-    "category": "ライフスタイル・コンセプト",
+    "category": "コンセプト",
     "condition_text": "高齢者向け（バリアフリー）",
+    "strength": 2,
     "poems": [
       { "id": "poem-068-a", "poem_text": "人生の集大成を、安心と共に過ごす。" },
       { "id": "poem-068-b", "poem_text": "成熟した世代に捧げる、優しい設計思想。" },
@@ -631,8 +683,9 @@
   },
   {
     "id": "condition-069",
-    "category": "ライフスタイル・コンセプト",
+    "category": "コンセプト",
     "condition_text": "DIY・リノベーション自由",
+    "strength": 3,
     "poems": [
       { "id": "poem-069-a", "poem_text": "創造という遊びを、日常に取り込む。" },
       { "id": "poem-069-b", "poem_text": "自らの手で紡ぐ、唯一無二の空間。" },
@@ -641,8 +694,9 @@
   },
   {
     "id": "condition-070",
-    "category": "ライフスタイル・コンセプト",
+    "category": "コンセプト",
     "condition_text": "楽器演奏可",
+    "strength": 2,
     "poems": [
       { "id": "poem-070-a", "poem_text": "音という芸術を、自由に奏でる特権。" },
       { "id": "poem-070-b", "poem_text": "防音という配慮が、創造性を解放する。" },
