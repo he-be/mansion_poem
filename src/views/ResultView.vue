@@ -333,7 +333,4 @@ const handleRetry = async () => {
     font-size: 1.25rem;
   }
 }
-
-/* Google Fontsのインポート（Noto Serif JP） */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&display=swap');
 </style>
