@@ -1,7 +1,10 @@
 // Cloudflare Workers のエントリーポイント
 export interface Env {
   ASSETS: Fetcher;
-  GEMINI_API_KEY: string; // Secrets Store から注入される
+  // Secrets Store バインディングの型定義を修正
+  GEMINI_API_KEY: {
+    get(): Promise<string | null>; // ★ 修正点: getメソッドは引数を取りません
+  };
 }
 
 export default {
@@ -44,12 +47,20 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
       );
     }
 
+    // Secrets StoreからAPIキーを取得
+    // ★ 修正点: get()の引数を削除
+    const apiKey = await env.GEMINI_API_KEY.get();
+
+    if (!apiKey) {
+      throw new Error('GEMINI_API_KEY not found in Secrets Store');
+    }
+
     // プロンプト構築（geminiClient.tsと同じロジック）
     const prompt = buildPrompt(selectedPairs);
 
     // Gemini APIを呼び出し（gemini-flash-latestを使用）
     const geminiResponse = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' + env.GEMINI_API_KEY,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' + apiKey,
       {
         method: 'POST',
         headers: {
@@ -148,19 +159,19 @@ ${pairsList}
    - 選ばれたポエムの「言い回し」を使うのではなく「意味」を使う
    - 3つの異なる要素を1つの文に溶け込ませる
 
-【文章構造】3-5段落、200-350文字
+【文章構造】3-5段落、180-300文字
 ┌─────────────────────────┐
 │ 第1段落：環境の本質を詩的に描写       │
-│  → 立地や街の特徴から始める          │
-│  → 具体的地名があれば活用            │
-│                                      │
-│ 第2-3段落：生活体験の価値を展開      │
-│  → 選択されたポエムの要素をここで統合 │
-│  → 対比や時間の流れで自然につなぐ    │
-│                                      │
+│   → 立地や街の特徴から始める         │
+│   → 具体的地名があれば活用           │
+│                                       │
+│ 第2-3段落：生活体験の価値を展開       │
+│   → 選択されたポエムの要素をここで統合 │
+│   → 対比や時間の流れで自然につなぐ     │
+│                                       │
 │ 最終段落：所有の意味を昇華           │
-│  → 「ここに住まう」価値の提示        │
-│  → 余韻を残す締めくくり              │
+│   → 「ここに住まう」価値の提示         │
+│   → 余韻を残す締めくくり             │
 └─────────────────────────┘
 
 【文体の原則】
@@ -190,7 +201,7 @@ ${pairsList}
 × 「あなた」「貴方」の直接的呼びかけ
 × 「門」「司令室」「プロローグ」等の具体的メタファー
 × 選ばれたポエムカードのコピー＆ペースト
-× 過度に長い一文（60文字超）
+× 過度に長い一文（40文字超）
 
 【統合の実例】
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
