@@ -314,7 +314,7 @@ const handleRetry = async () => {
     font-size: clamp(1.0rem, 3vw, 1.25rem); /* vw値を少し調整 */
     line-height: 1.7; /* 行間を少し詰めて情報量を確保 */
 
-    word-break: keep-all;
+    word-break: auto;
 
     /*
      * line-break: strict; を緩和します。
