@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/gameStore'
 import AppButton from '@/components/common/AppButton.vue'
@@ -69,6 +69,13 @@ import AppButton from '@/components/common/AppButton.vue'
 const router = useRouter()
 const gameStore = useGameStore()
 const isMenuOpen = ref(false)
+
+// リロード時に生成されたポエムがなければスタート画面へ
+onMounted(() => {
+  if (!gameStore.generatedPoem) {
+    router.replace('/')
+  }
+})
 
 const handleRestart = () => {
   gameStore.reset()

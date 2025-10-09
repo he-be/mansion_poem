@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/gameStore'
 import type { ConditionCard } from '@/types/card'
@@ -57,6 +57,13 @@ const isModalOpen = ref(false)
 const selectedCard = ref<ConditionCard | null>(null)
 
 const selectedCount = computed(() => Object.keys(gameStore.selectedPairs).length)
+
+// リロード時にカードが配られていなければスタート画面へ
+onMounted(() => {
+  if (gameStore.dealtCards.length === 0) {
+    router.replace('/')
+  }
+})
 
 const handleCardClick = (cardId: string) => {
   const card = gameStore.dealtCards.find((c) => c.id === cardId)
