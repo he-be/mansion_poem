@@ -73,10 +73,17 @@ const handleStart = () => {
 
 @media (max-width: 768px) {
   .start-title {
-    font-size: 2rem;
+    font-size: 1.75remrem;
   }
 
   .start-description {
+    font-size: 1rem;
+  }
+
+  .start-subtitle {
+    /* テキストが改行されるのを防ぎ、一行で表示する */
+    white-space: nowrap;
+    /* 画面幅に合わせてフォントサイズを少し小さくする */
     font-size: 1rem;
   }
 }

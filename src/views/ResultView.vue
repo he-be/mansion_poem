@@ -301,16 +301,27 @@ const handleRetry = async () => {
 
 @media (max-width: 768px) {
   .poem-overlay {
-    padding: 2rem 1rem;
+    /* 左右の余白を少し増やして窮屈さを解消 */
+    padding: 2rem 1.5rem;
   }
 
   .poem-title {
-    font-size: clamp(1.5rem, 6vw, 2.5rem);
-    margin-bottom: 1.5rem;
+    font-size: clamp(1.25rem, 4vw, 2.0rem);
+    margin-bottom: 1.0rem;
   }
 
   .poem-text {
-    font-size: clamp(1rem, 3vw, 1.25rem);
+    font-size: clamp(1.0rem, 3vw, 1.25rem); /* vw値を少し調整 */
+    line-height: 1.7; /* 行間を少し詰めて情報量を確保 */
+
+    word-break: keep-all;
+
+    /*
+     * line-break: strict; を緩和します。
+     * これにより、より多くの場所で改行できるようになり、
+     * テキストがコンテナからはみ出すのを防ぎます。
+     */
+    line-break: auto;
   }
 
   .menu-toggle {
