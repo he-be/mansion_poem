@@ -127,10 +127,12 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
     generatedPoem = generatedText.trim();
     const generationTime = Date.now() - startTime;
 
-    // D1にログ記録（非同期、失敗してもエラーにしない）
-    logGeneration(env, selectedPairs, generatedPoem, generationTime, true).catch(err => {
-      console.error('Failed to log generation:', err);
-    });
+    // D1にログ記録（awaitして確実に実行）
+    try {
+      await logGeneration(env, selectedPairs, generatedPoem, generationTime, true);
+    } catch (logErr) {
+      console.error('Failed to log generation:', logErr);
+    }
 
     return new Response(JSON.stringify({ poem: generatedPoem }), {
       headers: {
@@ -143,9 +145,11 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
     const generationTime = Date.now() - startTime;
 
     // エラーもログ記録
-    logGeneration(env, [], '', generationTime, false, error).catch(e => {
-      console.error('Failed to log error:', e);
-    });
+    try {
+      await logGeneration(env, [], '', generationTime, false, error);
+    } catch (logErr) {
+      console.error('Failed to log error:', logErr);
+    }
 
     console.error('Error generating poem:', err);
     return new Response(
@@ -171,7 +175,14 @@ async function logGeneration(
   _errorMessage?: string
 ): Promise<void> {
   try {
-    await env.DB.prepare(`
+    console.log('Logging to DB...', { hasDB: !!env.DB, pairsCount: selectedPairs.length });
+
+    if (!env.DB) {
+      console.error('env.DB is undefined!');
+      return;
+    }
+
+    const result = await env.DB.prepare(`
       INSERT INTO generation_logs (selected_cards, generated_poem, generation_time_ms, is_successful)
       VALUES (?, ?, ?, ?)
     `).bind(
@@ -180,6 +191,8 @@ async function logGeneration(
       generationTime,
       isSuccessful ? 1 : 0
     ).run();
+
+    console.log('DB log success:', result.meta);
   } catch (err) {
     console.error('DB log failed:', err);
   }
