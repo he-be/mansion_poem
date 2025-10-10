@@ -17,6 +17,8 @@ export default defineConfig({
         '**/*.d.ts',
         'src/main.ts',
         'src/worker.ts',
+        'src/views/DevPreview.vue',
+        'src/test-utils/**',
       ],
     },
   },
