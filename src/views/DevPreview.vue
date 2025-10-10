@@ -27,20 +27,24 @@
     </div>
 
     <!-- ResultViewを埋め込み表示 -->
-    <div class="dev-preview__content">
+    <div v-if="isReady" class="dev-preview__content">
       <ResultView />
+    </div>
+    <div v-else class="dev-preview__loading">
+      <p>準備中...</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { useGameStore } from '@/stores/gameStore'
 import { createMockGameState, createMockSelectedPair, createMockConditionCard, createMockPoem } from '@/test-utils/mockFactories'
 import ResultView from './ResultView.vue'
 
 const gameStore = useGameStore()
 const currentSampleIndex = ref(0)
+const isReady = ref(false)
 
 // 複数のサンプルデータを用意
 const samples = [
@@ -130,18 +134,21 @@ const samples = [
 
 const currentSample = computed(() => samples[currentSampleIndex.value])
 
-function selectSample(index: number) {
+async function selectSample(index: number) {
   currentSampleIndex.value = index
-  applySample()
+  await applySample()
 }
 
-function selectRandomSample() {
+async function selectRandomSample() {
   currentSampleIndex.value = Math.floor(Math.random() * samples.length)
-  applySample()
+  await applySample()
 }
 
-function applySample() {
+async function applySample() {
   const sample = currentSample.value
+
+  // 一旦非表示にする
+  isReady.value = false
 
   // ストアの状態を更新
   gameStore.selectedPairs = {}
@@ -152,10 +159,14 @@ function applySample() {
   gameStore.generatedTitle = sample.generatedTitle
   gameStore.generatedPoem = sample.generatedPoem
   gameStore.currentPhase = 'result'
+
+  // 次のティックで表示
+  await nextTick()
+  isReady.value = true
 }
 
-onMounted(() => {
-  applySample()
+onMounted(async () => {
+  await applySample()
 })
 </script>
 
@@ -239,5 +250,14 @@ onMounted(() => {
   /* ResultViewが全画面表示されるように */
   position: relative;
   min-height: calc(100vh - 300px);
+}
+
+.dev-preview__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 300px);
+  font-size: 1.2rem;
+  color: #718096;
 }
 </style>
