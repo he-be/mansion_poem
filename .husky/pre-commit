@@ -1,1 +1,13 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Type check
+echo "Running type check..."
+npm run typecheck || exit 1
+
+# Run tests
+echo "Running tests..."
+npm run test:run || exit 1
+
+# Lint staged files
 npx lint-staged

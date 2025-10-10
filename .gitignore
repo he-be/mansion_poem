@@ -29,3 +29,6 @@ dist-ssr
 
 # Generated/Downloaded files
 generation_logs.json
+
+# Test coverage
+coverage/

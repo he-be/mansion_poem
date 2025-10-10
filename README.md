@@ -21,7 +21,10 @@
 - **フロントエンド**: Vue 3 + TypeScript + Vite
 - **状態管理**: Pinia
 - **ルーティング**: Vue Router
+- **テスト**: Vitest + Vue Test Utils
+- **品質保証**: TypeScript + Husky (pre-commit hooks)
 - **デプロイ**: Cloudflare Workers + Assets
+- **データストア**: Cloudflare KV + D1
 - **AI**: Google Gemini Flash (gemini-flash-latest)
 
 ## 📦 開発環境のセットアップ
@@ -115,6 +118,18 @@ npm run dev
 
 # 型チェック
 npm run typecheck
+
+# テスト実行（watch mode）
+npm run test
+
+# テスト実行（一度だけ）
+npm run test:run
+
+# テストUI起動
+npm run test:ui
+
+# カバレッジ計測
+npm run test:coverage
 
 # ビルド
 npm run build
@@ -214,6 +229,39 @@ Gemini APIへのプロンプトは `src/data/prompt.txt` で管理されてい�
 
 ```bash
 npx wrangler kv key put "prompt:poem_generation" --path="src/data/prompt.txt" --namespace-id 52e86897f88e44bda74c9bde3e3a1807
+```
+
+## 🧪 品質保証
+
+このプロジェクトは以下の品質ゲートを備えています：
+
+### pre-commit hooks
+コミット時に自動実行される品質チェック：
+- **型チェック**: `vue-tsc --noEmit --skipLibCheck`
+- **テスト実行**: すべてのテストが成功することを確認
+
+### テスト構成
+- **フレームワーク**: Vitest + Vue Test Utils
+- **環境**: happy-dom（軽量DOMエミュレーション）
+- **カバレッジ**: v8プロバイダー
+- **テスト対象**:
+  - コンポーネント（AppButton等）
+  - ストア（gameStore）
+  - ユーティリティ関数
+
+### 実行方法
+```bash
+# ウォッチモードでテスト実行
+npm run test
+
+# 一度だけテスト実行
+npm run test:run
+
+# UIでテスト結果を確認
+npm run test:ui
+
+# カバレッジレポート生成
+npm run test:coverage
 ```
 
 ## 🔐 セキュリティ
