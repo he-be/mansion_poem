@@ -177,6 +177,8 @@ onMounted(async () => {
 }
 
 .dev-preview__header {
+  position: relative;
+  z-index: 100;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 2rem;
@@ -194,6 +196,8 @@ onMounted(async () => {
 }
 
 .dev-preview__controls {
+  position: relative;
+  z-index: 100;
   display: flex;
   gap: 1rem;
   padding: 1.5rem;
@@ -236,6 +240,8 @@ onMounted(async () => {
 }
 
 .dev-preview__info {
+  position: relative;
+  z-index: 100;
   padding: 1rem 1.5rem;
   background: #edf2f7;
   border-bottom: 1px solid #e2e8f0;
