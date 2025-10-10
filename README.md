@@ -244,10 +244,12 @@ npx wrangler kv key put "prompt:poem_generation" --path="src/data/prompt.txt" --
 - **フレームワーク**: Vitest + Vue Test Utils
 - **環境**: happy-dom（軽量DOMエミュレーション）
 - **カバレッジ**: v8プロバイダー
+- **テストヘルパー**: モックファクトリー、状態セットアップヘルパー
 - **テスト対象**:
-  - コンポーネント（AppButton等）
+  - コンポーネント（AppButton、ConditionCard、PoemCard等）
+  - ビュー（ResultView - UI操作なしでテスト可能）
   - ストア（gameStore）
-  - ユーティリティ関数
+  - ユーティリティ関数（cardSelector、titleGenerator等）
 
 ### 実行方法
 ```bash
@@ -262,6 +264,42 @@ npm run test:ui
 
 # カバレッジレポート生成
 npm run test:coverage
+```
+
+### テストヘルパーの使い方
+
+UI操作を経由せずに、直接結果画面の状態をテストできます：
+
+```typescript
+import { setupResultViewState, createMockGameState } from '@/test-utils'
+
+// モックデータを生成
+const mockState = createMockGameState()
+
+// 結果画面の状態を直接セットアップ（ボタンクリック不要）
+const { pinia, store } = setupResultViewState(mockState)
+
+// これでResultViewをマウントしてテスト可能
+const wrapper = mount(ResultView, {
+  global: { plugins: [pinia] }
+})
+```
+
+カスタムデータでのテスト：
+
+```typescript
+import { createMockSelectedPair, setupResultViewState } from '@/test-utils'
+
+const customState = {
+  selectedPairs: [
+    createMockSelectedPair({ /* カスタマイズ */ }),
+    // ... 残り4つ
+  ],
+  generatedTitle: 'カスタムタイトル',
+  generatedPoem: 'カスタムポエム',
+}
+
+const { pinia } = setupResultViewState(customState)
 ```
 
 ## 🔐 セキュリティ
