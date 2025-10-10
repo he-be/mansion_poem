@@ -5,6 +5,10 @@ export interface Env {
   GEMINI_API_KEY: {
     get(): Promise<string | null>; // ★ 修正点: getメソッドは引数を取りません
   };
+  // KV Namespace バインディング
+  CARDS_KV: KVNamespace;
+  // D1 Database バインディング
+  DB: D1Database;
 }
 
 export default {
@@ -33,6 +37,10 @@ export default {
 };
 
 async function handleGeneratePoem(request: Request, env: Env): Promise<Response> {
+  const startTime = Date.now();
+  let generatedPoem = '';
+  let error: string | undefined;
+
   try {
     const body = await request.json() as { selectedPairs?: any[] };
     const { selectedPairs } = body;
@@ -55,8 +63,22 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
       throw new Error('GEMINI_API_KEY not found in Secrets Store');
     }
 
-    // プロンプト構築（geminiClient.tsと同じロジック）
-    const prompt = buildPrompt(selectedPairs);
+    // KVからプロンプトテンプレートを取得
+    let promptTemplate = await env.CARDS_KV.get('prompt:poem_generation', 'text');
+    if (!promptTemplate) {
+      // フォールバック: 従来のbuildPrompt関数を使用
+      promptTemplate = buildPromptFallback(selectedPairs);
+    } else {
+      // プロンプトテンプレートにカードペアを埋め込み
+      const pairsList = selectedPairs
+        .map((pair, index) =>
+          `${index + 1}. ${pair.conditionCard.category}: ${pair.conditionCard.condition_text} → ${pair.selectedPoem.poem_text}`
+        )
+        .join('\n');
+      promptTemplate = promptTemplate.replace('{PAIRS_LIST}', pairsList);
+    }
+
+    const prompt = promptTemplate;
 
     // Gemini APIを呼び出し（gemini-flash-latestを使用）
     const geminiResponse = await fetch(
@@ -102,18 +124,32 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
       throw new Error('Gemini APIからテキストが生成されませんでした');
     }
 
-    return new Response(JSON.stringify({ poem: generatedText.trim() }), {
+    generatedPoem = generatedText.trim();
+    const generationTime = Date.now() - startTime;
+
+    // D1にログ記録（非同期、失敗してもエラーにしない）
+    logGeneration(env, selectedPairs, generatedPoem, generationTime, true).catch(err => {
+      console.error('Failed to log generation:', err);
+    });
+
+    return new Response(JSON.stringify({ poem: generatedPoem }), {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
       },
     });
-  } catch (error) {
-    console.error('Error generating poem:', error);
+  } catch (err) {
+    error = err instanceof Error ? err.message : 'Failed to generate poem';
+    const generationTime = Date.now() - startTime;
+
+    // エラーもログ記録
+    logGeneration(env, [], '', generationTime, false, error).catch(e => {
+      console.error('Failed to log error:', e);
+    });
+
+    console.error('Error generating poem:', err);
     return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : 'Failed to generate poem'
-      }),
+      JSON.stringify({ error }),
       {
         status: 500,
         headers: {
@@ -125,7 +161,32 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
   }
 }
 
-function buildPrompt(selectedPairs: any[]): string {
+// ログ記録関数（最小限）
+async function logGeneration(
+  env: Env,
+  selectedPairs: any[],
+  generatedPoem: string,
+  generationTime: number,
+  isSuccessful: boolean,
+  _errorMessage?: string
+): Promise<void> {
+  try {
+    await env.DB.prepare(`
+      INSERT INTO generation_logs (selected_cards, generated_poem, generation_time_ms, is_successful)
+      VALUES (?, ?, ?, ?)
+    `).bind(
+      JSON.stringify(selectedPairs),
+      generatedPoem,
+      generationTime,
+      isSuccessful ? 1 : 0
+    ).run();
+  } catch (err) {
+    console.error('DB log failed:', err);
+  }
+}
+
+// フォールバック用（KVにプロンプトがない場合）
+function buildPromptFallback(selectedPairs: any[]): string {
   const pairsList = selectedPairs
     .map((pair, index) =>
       `${index + 1}. ${pair.conditionCard.category}: ${pair.conditionCard.condition_text} → ${pair.selectedPoem.poem_text}`

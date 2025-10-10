@@ -10,14 +10,21 @@ binding = "ASSETS"
 not_found_handling = "single-page-application"
 
 # Secrets Store バインディング
-# 注意: YOUR_STORE_ID は Cloudflare Dashboard の Secrets Store から取得してください
 [[secrets_store_secrets]]
 binding = "GEMINI_API_KEY"
-store_id = "b8ffbf7dcbf34210b9bf420d54c0fdaa"  # ← ダッシュボードから取得して置き換える
+store_id = "b8ffbf7dcbf34210b9bf420d54c0fdaa"
 secret_name = "GEMINI_API_KEY"
-#secrets_store_secrets = [
-#  { binding = "GEMINI_API_KEY", store_id= "b8ffbf7dcbf34210b9bf420d54c0fdaa", secret_name = "GEMINI_API_KEY" }
-#]
+
+# KV Namespace バインディング
+[[kv_namespaces]]
+binding = "CARDS_KV"
+id = "52e86897f88e44bda74c9bde3e3a1807"
+
+# D1 Database バインディング
+[[d1_databases]]
+binding = "DB"
+database_name = "mansion-poem-db"
+database_id = "d629f38a-f2f6-4ec3-aaa5-37b6036a0d63"
 
 # Workers.dev サブドメイン設定
 workers_dev = true
