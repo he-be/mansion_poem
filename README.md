@@ -129,6 +129,45 @@ npm run deploy
 npm run generate-cards
 ```
 
+## 🔧 KV/D1管理コマンド
+
+### KVへのプロンプト更新
+
+```bash
+# prompt.txtをKVに反映
+npx wrangler kv key put "prompt:poem_generation" --path="src/data/prompt.txt" --namespace-id 52e86897f88e44bda74c9bde3e3a1807
+```
+
+### KVへのカードデータ更新
+
+```bash
+# cards.jsonをKVに反映
+npx wrangler kv key put "cards:all" --path="src/data/cards.json" --namespace-id 52e86897f88e44bda74c9bde3e3a1807
+```
+
+### D1ログのダウンロード
+
+```bash
+# generation_logsテーブルをJSON形式でダウンロード
+npx wrangler d1 execute mansion-poem-db --remote --command "SELECT * FROM generation_logs" --json > generation_logs.json
+
+# CSVとして扱いたい場合は、jqで変換
+cat generation_logs.json | jq -r '.[0].results[] | [.id, .timestamp, .title, .poem_text, .selected_cards] | @csv' > generation_logs.csv
+```
+
+### D1テーブルの確認
+
+```bash
+# テーブル一覧
+npx wrangler d1 execute mansion-poem-db --remote --command "SELECT name FROM sqlite_master WHERE type='table'"
+
+# ログ件数の確認
+npx wrangler d1 execute mansion-poem-db --remote --command "SELECT COUNT(*) as count FROM generation_logs"
+
+# 最新10件の確認
+npx wrangler d1 execute mansion-poem-db --remote --command "SELECT * FROM generation_logs ORDER BY timestamp DESC LIMIT 10"
+```
+
 ## 🏗️ プロジェクト構造
 
 ```
@@ -162,12 +201,20 @@ mansion_poem/
 ### カードデータの編集
 
 カードデータは `src/data/cards.json` で管理されています。
-Excel形式のデータから変換する場合は、`scripts/convertCardsData.js` を使用します。
+編集後、本番環境に反映するには以下のコマンドを実行してください：
+
+```bash
+npx wrangler kv key put "cards:all" --path="src/data/cards.json" --namespace-id 52e86897f88e44bda74c9bde3e3a1807
+```
 
 ### プロンプトの調整
 
-Gemini APIへのプロンプトは `src/worker.ts` の `buildPrompt()` 関数で定義されています。
-マンションポエムの生成ルールやスタイルを調整する場合は、この関数を編集してください。
+Gemini APIへのプロンプトは `src/data/prompt.txt` で管理されています。
+編集後、本番環境に反映するには以下のコマンドを実行してください：
+
+```bash
+npx wrangler kv key put "prompt:poem_generation" --path="src/data/prompt.txt" --namespace-id 52e86897f88e44bda74c9bde3e3a1807
+```
 
 ## 🔐 セキュリティ
 
