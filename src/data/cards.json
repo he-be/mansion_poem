@@ -702,5 +702,280 @@
       { "id": "poem-070-b", "poem_text": "防音という配慮が、創造性を解放する。" },
       { "id": "poem-070-c", "poem_text": "メロディに満ちた、豊かな日常。" }
     ]
+  },
+  {
+    "id": "condition-101",
+    "category": "災害・ハザード",
+    "condition_text": "崖に隣接",
+    "strength": -4,
+    "poems": [
+      { "id": "poem-101-a", "poem_text": "眺望を遮るものが、未来永劫現れないという約束。" },
+      { "id": "poem-101-b", "poem_text": "大地が創り出した、天然のプライベート空間。" },
+      { "id": "poem-101-c", "poem_text": "自然のダイナミズムを、日々体感する暮らし。" }
+    ]
+  },
+  {
+    "id": "condition-102",
+    "category": "災害・ハザード",
+    "condition_text": "土砂災害警戒区域",
+    "strength": -5,
+    "poems": [
+      { "id": "poem-102-a", "poem_text": "行政が注視する、特別なプロテクションエリア。" },
+      { "id": "poem-102-b", "poem_text": "大いなる自然の息吹を、肌で感じる聖域。" },
+      { "id": "poem-102-c", "poem_text": "守るべきものがある、選ばれし土地。" }
+    ]
+  },
+  {
+    "id": "condition-103",
+    "category": "立地・アドレス",
+    "condition_text": "古戦場",
+    "strength": -3,
+    "poems": [
+      { "id": "poem-103-a", "poem_text": "歴史の記憶が、この土地の価値を深化させる。" },
+      { "id": "poem-103-b", "poem_text": "かつての英雄たちが眠る、静寂の聖地。" },
+      { "id": "poem-103-c", "poem_text": "幾多の物語を超えて、今、安らぎの地となる。" }
+    ]
+  },
+  {
+    "id": "condition-104",
+    "category": "周辺環境",
+    "condition_text": "隣が心霊スポット",
+    "strength": -5,
+    "poems": [
+      { "id": "poem-104-a", "poem_text": "選ばれし者だけが、住まうことを許される領域。" },
+      { "id": "poem-104-b", "poem_text": "見えざる世界の住人たちが、静けさを約束する。" },
+      { "id": "poem-104-c", "poem_text": "この世とあの世が交差する、スピリチュアルな日常。" }
+    ]
+  },
+  {
+    "id": "condition-105",
+    "category": "立地・アドレス",
+    "condition_text": "地面師詐欺が起きた土地",
+    "strength": -4,
+    "poems": [
+      { "id": "poem-105-a", "poem_text": "プロが認めた、隠された一等地。" },
+      { "id": "poem-105-b", "poem_text": "過去の傷が、未来の価値を磨き上げる。" },
+      { "id": "poem-105-c", "poem_text": "多くのドラマが刻まれた、物語を持つアドレス。" }
+    ]
+  },
+  {
+    "id": "condition-106",
+    "category": "災害・ハザード",
+    "condition_text": "三年前洪水が起きた土地",
+    "strength": -4,
+    "poems": [
+      { "id": "poem-106-a", "poem_text": "水の洗礼を受け、清められた大地。" },
+      { "id": "poem-106-b", "poem_text": "過去の教訓が、未来への備えを万全にする。" },
+      { "id": "poem-106-c", "poem_text": "川の恵みと、その厳しさを知る暮らし。" }
+    ]
+  },
+  {
+    "id": "condition-107",
+    "category": "周辺環境",
+    "condition_text": "裏が山",
+    "strength": -2,
+    "poems": [
+      { "id": "poem-107-a", "poem_text": "プライベートフォレストを、庭にする贅沢。" },
+      { "id": "poem-107-b", "poem_text": "鳥のさえずりが、朝の目覚ましになる。" },
+      { "id": "poem-107-c", "poem_text": "背後にそびえる緑が、ゆるぎない安定感を約束する。" }
+    ]
+  },
+  {
+    "id": "condition-108",
+    "category": "災害・ハザード",
+    "condition_text": "浸水想定区域",
+    "strength": -4,
+    "poems": [
+      { "id": "poem-108-a", "poem_text": "水と共に生きる、という思想。" },
+      { "id": "poem-108-b", "poem_text": "かつては、誰もが羨んだ水の都。" },
+      { "id": "poem-108-c", "poem_text": "行政のハザードマップが、意識を高める。" }
+    ]
+  },
+  {
+    "id": "condition-109",
+    "category": "災害・ハザード",
+    "condition_text": "隣の川が天井川",
+    "strength": -5,
+    "poems": [
+      { "id": "poem-109-a", "poem_text": "見上げる川という、非日常の風景。" },
+      { "id": "poem-109-b", "poem_text": "先人たちの治水の歴史を、日々感じる。" },
+      { "id": "poem-109-c", "poem_text": "天空の水路が、この土地の特別さを物語る。" }
+    ]
+  },
+  {
+    "id": "condition-110",
+    "category": "災害・ハザード",
+    "condition_text": "液状化ハザードマップの危険区域",
+    "strength": -5,
+    "poems": [
+      { "id": "poem-110-a", "poem_text": "柔らかな大地が、日々の衝撃を吸収する。" },
+      { "id": "poem-110-b", "poem_text": "強固な地盤改良が、技術の粋を証明する。" },
+      { "id": "poem-110-c", "poem_text": "かつて海であった記憶を、留める土地。" }
+    ]
+  },
+  {
+    "id": "condition-111",
+    "category": "周辺環境",
+    "condition_text": "周辺に古い木造住宅が密集",
+    "strength": -3,
+    "poems": [
+      { "id": "poem-111-a", "poem_text": "昭和の原風景が、ここに残る。" },
+      { "id": "poem-111-b", "poem_text": "人々の営みが織りなす、温かいコミュニティ。" },
+      { "id": "poem-111-c", "poem_text": "再開発の波を待つ、未来へのポテンシャル。" }
+    ]
+  },
+  {
+    "id": "condition-112",
+    "category": "災害・ハザード",
+    "condition_text": "火山の噴火による降灰エリア",
+    "strength": -4,
+    "poems": [
+      { "id": "poem-112-a", "poem_text": "大いなる山の恵みを、享受する土地。" },
+      { "id": "poem-112-b", "poem_text": "地球の息吹を、時に感じるダイナミズム。" },
+      { "id": "poem-112-c", "poem_text": "ミネラル豊かな土壌が、緑を育む。" }
+    ]
+  },
+  {
+    "id": "condition-113",
+    "category": "災害・ハザード",
+    "condition_text": "高潮の被害想定エリア",
+    "strength": -4,
+    "poems": [
+      { "id": "poem-113-a", "poem_text": "海の満ち引きを、全身で感じる暮らし。" },
+      { "id": "poem-113-b", "poem_text": "潮の香りが、日常に潤いを与える。" },
+      { "id": "poem-113-c", "poem_text": "自然の雄大さと共に生きる、という選択。" }
+    ]
+  },
+  {
+    "id": "condition-114",
+    "category": "災害・ハザード",
+    "condition_text": "谷を埋めた造成地",
+    "strength": -3,
+    "poems": [
+      { "id": "poem-114-a", "poem_text": "周囲の丘に守られた、安らぎの盆地。" },
+      { "id": "poem-114-b", "poem_text": "計画的にデザインされた、美しい街並み。" },
+      { "id": "poem-114-c", "poem_text": "大地の記憶の上に、新しい歴史を築く。" }
+    ]
+  },
+  {
+    "id": "condition-115",
+    "category": "周辺環境",
+    "condition_text": "空港や基地の飛行ルート真下",
+    "strength": -4,
+    "poems": [
+      { "id": "poem-115-a", "poem_text": "天空を駆ける翼が、日常を彩る。" },
+      { "id": "poem-115-b", "poem_text": "世界の空と、ダイレクトに繋がる場所。" },
+      { "id": "poem-115-c", "poem_text": "轟音という名のBGMが、都市の躍動を伝える。" }
+    ]
+  },
+  {
+    "id": "condition-116",
+    "category": "周辺環境",
+    "condition_text": "隣がライブハウス",
+    "strength": -3,
+    "poems": [
+      { "id": "poem-116-a", "poem_text": "若さの熱狂が、日常を彩るBGMになる。" },
+      { "id": "poem-116-b", "poem_text": "都市のカルチャーを、最前列で浴びる暮らし。" },
+      { "id": "poem-116-c", "poem_text": "眠らない街のビートが、魂を揺さぶる。" }
+    ]
+  },
+  {
+    "id": "condition-117",
+    "category": "周辺環境",
+    "condition_text": "救急病院や消防署が隣接",
+    "strength": -3,
+    "poems": [
+      { "id": "poem-117-a", "poem_text": "万が一の時も、安心がすぐそばに。" },
+      { "id": "poem-117-b", "poem_text": "街を守るサイレンが、守護の音色となる。" },
+      { "id": "poem-117-c", "poem_text": "生命の最前線に寄り添う、という選択。" }
+    ]
+  },
+  {
+    "id": "condition-118",
+    "category": "周辺環境",
+    "condition_text": "川や用水路のヘドロの臭い",
+    "strength": -4,
+    "poems": [
+      { "id": "poem-118-a", "poem_text": "生命の源流が放つ、豊穣の香り。" },
+      { "id": "poem-118-b", "poem_text": "ありのままの自然と、共生する。" },
+      { "id": "poem-118-c", "poem_text": "五感を刺激する、リアルな風土記。" }
+    ]
+  },
+  {
+    "id": "condition-119",
+    "category": "周辺環境",
+    "condition_text": "隣が刑務所",
+    "strength": -5,
+    "poems": [
+      { "id": "poem-119-a", "poem_text": "国家レベルの警備体制が、365日の安寧を約束する。" },
+      { "id": "poem-119-b", "poem_text": "静寂と規律が支配する、思索のための空間。" },
+      { "id": "poem-119-c", "poem_text": "壁一枚を隔てて、自由の価値を噛みしめる。" }
+    ]
+  },
+  {
+    "id": "condition-120",
+    "category": "立地・アドレス",
+    "condition_text": "有名カルト教団の旧本部の土地",
+    "strength": -5,
+    "poems": [
+      { "id": "poem-120-a", "poem_text": "かつて、多くの信者が集った求心の地。" },
+      { "id": "poem-120-b", "poem_text": "過去を浄め、新たな歴史を始める場所。" },
+      { "id": "poem-120-c", "poem_text": "良くも悪くも、地図に刻まれた物語を持つ。" }
+    ]
+  },
+  {
+    "id": "condition-121",
+    "category": "周辺環境",
+    "condition_text": "UFOの目撃情報が多発するエリア",
+    "strength": -3,
+    "poems": [
+      { "id": "poem-121-a", "poem_text": "夜空を見上げるのが、愉しくなる街。" },
+      { "id": "poem-121-b", "poem_text": "宇宙からの視線を感じる、特別な場所。" },
+      { "id": "poem-121-c", "poem_text": "常識に縛られない、ミステリアスな日常。" }
+    ]
+  },
+  {
+    "id": "condition-122",
+    "category": "周辺環境",
+    "condition_text": "近隣住民の民度が極端に低いとネットの掲示板で名指し",
+    "strength": -5,
+    "poems": [
+      { "id": "poem-122-a", "poem_text": "ありのままの人間性が交差する、飾らない街。" },
+      { "id": "poem-122-b", "poem_text": "見栄や体裁から解放された、自由なコミュニティ。" },
+      { "id": "poem-122-c", "poem_text": "磨かれる前の原石に、未来の価値を見出す。" }
+    ]
+  },
+  {
+    "id": "condition-123",
+    "category": "眺望・日照",
+    "condition_text": "目の前の駐車場は、将来高層マンションが建つ計画がある",
+    "strength": -4,
+    "poems": [
+      { "id": "poem-123-a", "poem_text": "今しか享受できない、期間限定の開放感。" },
+      { "id": "poem-123-b", "poem_text": "変わりゆく街の景色が、未来への期待を映す。" },
+      { "id": "poem-123-c", "poem_text": "未来の資産価値を、約束された眺望。" }
+    ]
+  },
+  {
+    "id": "condition-124",
+    "category": "周辺環境",
+    "condition_text": "高圧電線の鉄塔がすぐ隣",
+    "strength": -4,
+    "poems": [
+      { "id": "poem-124-a", "poem_text": "現代を象徴する、鉄のアートオブジェ。" },
+      { "id": "poem-124-b", "poem_text": "都市を支えるエネルギーを、間近に感じる。" },
+      { "id": "poem-124-c", "poem_text": "夜空に浮かぶシルエットが、道標となる。" }
+    ]
+  },
+  {
+    "id": "condition-125",
+    "category": "周辺環境",
+    "condition_text": "隣がゴミ屋敷",
+    "strength": -5,
+    "poems": [
+      { "id": "poem-125-a", "poem_text": "自らの暮らしを、反面教師として見つめ直す。" },
+      { "id": "poem-125-b", "poem_text": "多様な生き方を、許容する街。" },
+      { "id": "poem-125-c", "poem_text": "そのカオスが、我が家の静寂を際立たせる。" }
+    ]
   }
 ]

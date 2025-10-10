@@ -161,6 +161,8 @@ const handleRetry = async () => {
     0 0 20px rgba(0, 0, 0, 0.3);
   line-height: 2;
   max-width: 900px;
+  width: 100%; /* 親要素の幅に合わせる */
+  box-sizing: border-box; /* paddingを含めた幅計算 */
   white-space: pre-wrap;
   word-break: keep-all;        /* 単語の途中で改行しない */
   line-break: strict;          /* 日本語の禁則処理を厳格に適用 */
@@ -307,12 +309,12 @@ const handleRetry = async () => {
   }
 
   .poem-title {
-    font-size: clamp(1.25rem, 4vw, 2.0rem);
+    font-size: clamp(1.25rem, 4vw, 1.8rem);
     margin-bottom: 1.0rem;
   }
 
   .poem-text {
-    font-size: clamp(1.0rem, 3vw, 1.25rem); /* vw値を少し調整 */
+    font-size: clamp(1.0rem, 3vw, 1.1rem); /* vw値を少し調整 */
     line-height: 1.7; /* 行間を少し詰めて情報量を確保 */
 
     word-break: auto;
