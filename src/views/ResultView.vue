@@ -1,20 +1,33 @@
 <template>
   <div class="result-view">
-    <!-- 背景画像 -->
-    <div class="background-image"></div>
+    <!-- レイアウトコンポーネント -->
+    <LayoutA
+      v-if="layoutStyle === 'A'"
+      :title="gameStore.generatedTitle"
+      :poem="gameStore.generatedPoem"
+      :background-image="gameStore.selectedBackground"
+    />
+    <LayoutB
+      v-else-if="layoutStyle === 'B'"
+      :title="gameStore.generatedTitle"
+      :poem="gameStore.generatedPoem"
+      :background-image="gameStore.selectedBackground"
+    />
+    <LayoutC
+      v-else-if="layoutStyle === 'C'"
+      :title="gameStore.generatedTitle"
+      :poem="gameStore.generatedPoem"
+      :background-image="gameStore.selectedBackground"
+    />
 
-    <!-- 生成されたポエムテキスト -->
-    <div class="poem-overlay">
-      <h1 class="poem-title">{{ gameStore.generatedTitle }}</h1>
-      <p class="poem-text">{{ gameStore.generatedPoem }}</p>
-      <div v-if="gameStore.poemGenerationError" class="error-overlay">
-        <p>{{ gameStore.poemGenerationError }}</p>
-        <AppButton
-          label="再生成する"
-          variant="secondary"
-          @click="handleRetry"
-        />
-      </div>
+    <!-- エラー表示 -->
+    <div v-if="gameStore.poemGenerationError" class="error-overlay">
+      <p>{{ gameStore.poemGenerationError }}</p>
+      <AppButton
+        label="再生成する"
+        variant="secondary"
+        @click="handleRetry"
+      />
     </div>
 
     <!-- 右下のメニュートグルボタン -->
@@ -61,10 +74,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, withDefaults } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/gameStore'
 import AppButton from '@/components/common/AppButton.vue'
+import LayoutA from '@/components/layouts/LayoutA.vue'
+import LayoutB from '@/components/layouts/LayoutB.vue'
+import LayoutC from '@/components/layouts/LayoutC.vue'
+import type { LayoutStyle } from '@/types/layout'
+
+interface Props {
+  layoutStyle?: LayoutStyle
+}
+
+withDefaults(defineProps<Props>(), {
+  layoutStyle: 'A',
+})
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -96,84 +121,12 @@ const handleRetry = async () => {
   background-color: #000000;
 }
 
-/* 背景画像 */
-.background-image {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  background-image: url('/img/bg_1.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: 0;
-}
-
-/* ポエムテキストオーバーレイ */
-.poem-overlay {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
-  box-sizing: border-box;
-}
-
-.poem-title {
-  font-family: 'Noto Serif JP', 'Times New Roman', serif;
-  font-size: clamp(2rem, 5vw, 4rem);
-  font-weight: 700;
-  color: #d4af37; /* ゴールド */
-  text-shadow:
-    /* グラデーション影: 下方向 */
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    0 4px 8px rgba(0, 0, 0, 0.25),
-    0 8px 16px rgba(0, 0, 0, 0.2),
-    0 12px 24px rgba(0, 0, 0, 0.15),
-    /* ゴールドの光彩効果 */
-    0 0 20px rgba(212, 175, 55, 0.6),
-    0 0 40px rgba(212, 175, 55, 0.3);
-  margin: 0 0 2rem 0;
-  letter-spacing: 0.1em;
-  line-height: 1.4;
-}
-
-.poem-text {
-  font-family: 'Noto Serif JP', 'Times New Roman', serif;
-  font-size: clamp(1.125rem, 2.5vw, 1.75rem);
-  font-weight: 500;
-  color: #f5e6d3; /* クリーム色のゴールド */
-  text-shadow:
-    /* グラデーション影: 下方向 */
-    0 1px 2px rgba(0, 0, 0, 0.4),
-    0 2px 4px rgba(0, 0, 0, 0.35),
-    0 4px 8px rgba(0, 0, 0, 0.3),
-    0 6px 12px rgba(0, 0, 0, 0.25),
-    0 8px 16px rgba(0, 0, 0, 0.2),
-    /* 柔らかい光彩効果 */
-    0 0 10px rgba(0, 0, 0, 0.5),
-    0 0 20px rgba(0, 0, 0, 0.3);
-  line-height: 2;
-  max-width: 900px;
-  width: 100%; /* 親要素の幅に合わせる */
-  box-sizing: border-box; /* paddingを含めた幅計算 */
-  white-space: pre-wrap;
-  word-break: keep-all;        /* 単語の途中で改行しない */
-  line-break: strict;          /* 日本語の禁則処理を厳格に適用 */
-  overflow-wrap: break-word;   /* 長すぎる単語のみ改行 */
-  hanging-punctuation: force-end; /* 句読点を行末に配置 */
-  letter-spacing: 0.05em;
-  margin: 0;
-}
-
 .error-overlay {
-  margin-top: 2rem;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 200;
   padding: 1.5rem;
   background-color: rgba(254, 215, 215, 0.95);
   border-radius: 8px;

@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import ResultView from '../ResultView.vue'
 import { setupResultViewState, createMockRouter } from '@/test-utils/testHelpers'
 import { createMockGameState } from '@/test-utils/mockFactories'
+import type { LayoutStyle } from '@/types/layout'
 
 // ルーターをモック化
 vi.mock('vue-router', () => ({
@@ -136,5 +137,93 @@ describe('ResultView', () => {
     // タイトルとテキストが含まれる
     expect(overlay.find('.poem-title').exists()).toBe(true)
     expect(overlay.find('.poem-text').exists()).toBe(true)
+  })
+
+  describe('Layout Style Support', () => {
+    it('accepts layoutStyle prop with default value A', () => {
+      const mockState = createMockGameState()
+      const { pinia } = setupResultViewState(mockState)
+
+      const wrapper = mount(ResultView, {
+        global: {
+          plugins: [pinia],
+        },
+      })
+
+      // デフォルトでスタイルAが使われることを確認
+      expect(wrapper.vm.layoutStyle).toBe('A')
+    })
+
+    it('accepts layoutStyle prop and renders appropriate layout', () => {
+      const mockState = createMockGameState()
+      const { pinia } = setupResultViewState(mockState)
+
+      const layoutStyles: LayoutStyle[] = ['A', 'B', 'C']
+
+      layoutStyles.forEach((style) => {
+        const wrapper = mount(ResultView, {
+          props: {
+            layoutStyle: style,
+          },
+          global: {
+            plugins: [pinia],
+          },
+        })
+
+        // layoutStyleプロパティが正しく設定されることを確認
+        expect(wrapper.vm.layoutStyle).toBe(style)
+      })
+    })
+
+    it('renders LayoutA component when layoutStyle is A', () => {
+      const mockState = createMockGameState()
+      const { pinia } = setupResultViewState(mockState)
+
+      const wrapper = mount(ResultView, {
+        props: {
+          layoutStyle: 'A',
+        },
+        global: {
+          plugins: [pinia],
+        },
+      })
+
+      // LayoutAコンポーネントが含まれることを確認
+      expect(wrapper.findComponent({ name: 'LayoutA' }).exists()).toBe(true)
+    })
+
+    it('renders LayoutB component when layoutStyle is B', () => {
+      const mockState = createMockGameState()
+      const { pinia } = setupResultViewState(mockState)
+
+      const wrapper = mount(ResultView, {
+        props: {
+          layoutStyle: 'B',
+        },
+        global: {
+          plugins: [pinia],
+        },
+      })
+
+      // LayoutBコンポーネントが含まれることを確認
+      expect(wrapper.findComponent({ name: 'LayoutB' }).exists()).toBe(true)
+    })
+
+    it('renders LayoutC component when layoutStyle is C', () => {
+      const mockState = createMockGameState()
+      const { pinia } = setupResultViewState(mockState)
+
+      const wrapper = mount(ResultView, {
+        props: {
+          layoutStyle: 'C',
+        },
+        global: {
+          plugins: [pinia],
+        },
+      })
+
+      // LayoutCコンポーネントが含まれることを確認
+      expect(wrapper.findComponent({ name: 'LayoutC' }).exists()).toBe(true)
+    })
   })
 })
