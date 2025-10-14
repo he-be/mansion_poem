@@ -1,4 +1,7 @@
 // Cloudflare Workers のエントリーポイント
+import catchphrasesData from './data/catchphrases.json'
+import { selectRandomCatchphrases } from './utils/copySelector'
+
 export interface Env {
   ASSETS: Fetcher;
   // Secrets Store バインディングの型定義を修正
@@ -63,19 +66,27 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
       throw new Error('GEMINI_API_KEY not found in Secrets Store');
     }
 
+    // キャッチコピーをランダムに20個選択
+    const selectedCatchphrases = selectRandomCatchphrases(catchphrasesData as string[]);
+    const titleCandidates = selectedCatchphrases
+      .map((phrase, index) => `${index + 1}. ${phrase}`)
+      .join('\n');
+
     // KVからプロンプトテンプレートを取得
     let promptTemplate = await env.CARDS_KV.get('prompt:poem_generation', 'text');
     if (!promptTemplate) {
       // フォールバック: 従来のbuildPrompt関数を使用
-      promptTemplate = buildPromptFallback(selectedPairs);
+      promptTemplate = buildPromptFallback(selectedPairs, titleCandidates);
     } else {
-      // プロンプトテンプレートにカードペアを埋め込み
+      // プロンプトテンプレートにカードペアとタイトル候補を埋め込み
       const pairsList = selectedPairs
         .map((pair, index) =>
           `${index + 1}. ${pair.conditionCard.category}: ${pair.conditionCard.condition_text} → ${pair.selectedPoem.poem_text}`
         )
         .join('\n');
-      promptTemplate = promptTemplate.replace('{PAIRS_LIST}', pairsList);
+      promptTemplate = promptTemplate
+        .replace('{PAIRS_LIST}', pairsList)
+        .replace('{TITLE_CANDIDATES}', titleCandidates);
     }
 
     const prompt = promptTemplate;
@@ -124,7 +135,29 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
       throw new Error('Gemini APIからテキストが生成されませんでした');
     }
 
-    generatedPoem = generatedText.trim();
+    // JSON形式のレスポンスをパース
+    const trimmedText = generatedText.trim();
+    let title = '';
+    let poem = '';
+
+    try {
+      // JSONコードブロックを抽出（```json ... ``` の形式に対応）
+      const jsonMatch = trimmedText.match(/```json\s*\n?([\s\S]*?)\n?```/);
+      const jsonText = jsonMatch ? jsonMatch[1] : trimmedText;
+
+      const parsed = JSON.parse(jsonText) as { title?: string; poem?: string };
+      title = parsed.title || '';
+      poem = parsed.poem || '';
+
+      if (!title || !poem) {
+        throw new Error('titleまたはpoemが見つかりません');
+      }
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError, 'Raw text:', trimmedText);
+      throw new Error('生成されたテキストのJSON解析に失敗しました');
+    }
+
+    generatedPoem = poem;
     const generationTime = Date.now() - startTime;
 
     // D1にログ記録（awaitして確実に実行）
@@ -134,7 +167,7 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
       console.error('Failed to log generation:', logErr);
     }
 
-    return new Response(JSON.stringify({ poem: generatedPoem }), {
+    return new Response(JSON.stringify({ title, poem: generatedPoem }), {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
@@ -199,7 +232,7 @@ async function logGeneration(
 }
 
 // フォールバック用（KVにプロンプトがない場合）
-function buildPromptFallback(selectedPairs: any[]): string {
+function buildPromptFallback(selectedPairs: any[], titleCandidates: string): string {
   const pairsList = selectedPairs
     .map((pair, index) =>
       `${index + 1}. ${pair.conditionCard.category}: ${pair.conditionCard.condition_text} → ${pair.selectedPoem.poem_text}`
@@ -207,7 +240,7 @@ function buildPromptFallback(selectedPairs: any[]): string {
     .join('\n');
 
   return `あなたは一流不動産広告のクリエイティブディレクターです。
-選択されたポエムカードの組み合わせから、心に響くマンション広告本文を創造してください。
+選択されたポエムカードの組み合わせから、心に響くマンション広告本文とタイトルを創造してください。
 
 【重要】各カードを単に並べるのではなく、それらの本質を抽出し、
 一つの流れる物語として「再構築」してください。
@@ -215,6 +248,11 @@ function buildPromptFallback(selectedPairs: any[]): string {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【選択されたカードペア】
 ${pairsList}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【タイトル選択候補】
+以下の実在のマンションキャッチコピーから、今回生成する広告本文に最も相応しいタイトルを1つ選択してください:
+${titleCandidates}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 【統合の指針】
@@ -310,8 +348,17 @@ ${pairsList}
 □ 具体的数値や仕様を直接言及していないか
 □ 読んで余韻が残るか
 
-【出力】
-チラシ本文のみを出力してください。
-説明、前置き、「以下のようになります」等の前書きは一切不要です。
-生成した本文のみを、そのまま掲載できる形で提示してください。`;
+【出力形式】
+以下のJSON形式で出力してください。説明や前置きは不要です:
+\`\`\`json
+{
+  "title": "選択したキャッチコピーをそのまま記載",
+  "poem": "生成した広告本文"
+}
+\`\`\`
+
+**重要**:
+- titleは【タイトル選択候補】から選んだものを**一字一句そのまま**記載
+- poemは生成した広告本文のみ（説明不要）
+- JSON形式以外の出力は一切不要`;
 }

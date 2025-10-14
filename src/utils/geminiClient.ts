@@ -11,17 +11,22 @@ export interface GeneratePoemOptions {
   selectedPairs: SelectedPair[];
 }
 
+export interface GeneratePoemResult {
+  title: string;
+  poem: string;
+}
+
 /**
- * Gemini Flash APIを使用してポエムを生成
+ * Gemini Flash APIを使用してポエムとタイトルを生成
  * Worker API経由で呼び出し（プロンプト構築はWorker側で実行）
  *
  * @param options 生成オプション
- * @returns 生成されたポエム
+ * @returns 生成されたタイトルとポエム
  * @throws ネットワークエラー、生成失敗時にエラーをスロー
  */
 export async function generatePoemWithGemini(
   options: GeneratePoemOptions
-): Promise<string> {
+): Promise<GeneratePoemResult> {
   // API呼び出し（タイムアウト30秒）
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
@@ -47,15 +52,15 @@ export async function generatePoemWithGemini(
       throw new Error(errorData.error || `API エラー: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json() as { poem?: string };
-    const generatedText = data.poem;
+    const data = await response.json() as { title?: string; poem?: string };
+    const { title, poem } = data;
 
-    if (!generatedText) {
+    if (!title || !poem) {
       console.error('API response:', data);
-      throw new Error('APIからテキストが生成されませんでした');
+      throw new Error('APIからタイトルまたはポエムが生成されませんでした');
     }
 
-    return generatedText;
+    return { title, poem };
   } catch (error) {
     clearTimeout(timeoutId);
 
