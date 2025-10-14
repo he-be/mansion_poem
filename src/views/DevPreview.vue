@@ -8,27 +8,44 @@
     </div>
 
     <div class="dev-preview__controls">
-      <button
-        v-for="(_sample, index) in samples"
-        :key="index"
-        :class="['sample-button', { active: currentSampleIndex === index }]"
-        @click="selectSample(index)"
-      >
-        サンプル {{ index + 1 }}
-      </button>
-      <button class="sample-button sample-button--random" @click="selectRandomSample">
-        🎲 ランダム
-      </button>
+      <div class="controls-group">
+        <label class="controls-label">サンプル:</label>
+        <button
+          v-for="(_sample, index) in samples"
+          :key="index"
+          :class="['sample-button', { active: currentSampleIndex === index }]"
+          @click="selectSample(index)"
+        >
+          サンプル {{ index + 1 }}
+        </button>
+        <button class="sample-button sample-button--random" @click="selectRandomSample">
+          🎲 ランダム
+        </button>
+      </div>
+
+      <div class="controls-group">
+        <label class="controls-label">レイアウト:</label>
+        <button
+          v-for="style in ['A', 'B', 'C'] as LayoutStyle[]"
+          :key="style"
+          :class="['layout-button', { active: currentLayoutStyle === style }]"
+          @click="selectLayoutStyle(style)"
+        >
+          スタイル {{ style }}
+        </button>
+      </div>
     </div>
 
     <div class="dev-preview__info">
+      <p><strong>サンプル:</strong> {{ currentSampleIndex + 1 }}</p>
+      <p><strong>レイアウト:</strong> スタイル {{ currentLayoutStyle }}</p>
       <p><strong>タイトル:</strong> {{ currentSample.generatedTitle }}</p>
       <p><strong>選択カード数:</strong> {{ currentSample.selectedPairs.length }}</p>
     </div>
 
     <!-- ResultViewを埋め込み表示 -->
     <div v-if="isReady" class="dev-preview__content">
-      <ResultView />
+      <ResultView :layout-style="currentLayoutStyle" />
     </div>
     <div v-else class="dev-preview__loading">
       <p>準備中...</p>
@@ -41,9 +58,11 @@ import { ref, onMounted, computed, nextTick } from 'vue'
 import { useGameStore } from '@/stores/gameStore'
 import { createMockGameState, createMockSelectedPair, createMockConditionCard, createMockPoem } from '@/test-utils/mockFactories'
 import ResultView from './ResultView.vue'
+import type { LayoutStyle } from '@/types/layout'
 
 const gameStore = useGameStore()
 const currentSampleIndex = ref(0)
+const currentLayoutStyle = ref<LayoutStyle>('A')
 const isReady = ref(false)
 
 // 複数のサンプルデータを用意
@@ -144,6 +163,10 @@ async function selectRandomSample() {
   await applySample()
 }
 
+function selectLayoutStyle(style: LayoutStyle) {
+  currentLayoutStyle.value = style
+}
+
 async function applySample() {
   const sample = currentSample.value
 
@@ -199,12 +222,26 @@ onMounted(async () => {
   position: relative;
   z-index: 100;
   display: flex;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 1.5rem;
   padding: 1.5rem;
   background: white;
   border-bottom: 1px solid #e2e8f0;
+}
+
+.controls-group {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.controls-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #4a5568;
+  min-width: 80px;
 }
 
 .sample-button {
@@ -237,6 +274,28 @@ onMounted(async () => {
 
 .sample-button--random:hover {
   transform: translateY(-2px) scale(1.05);
+}
+
+.layout-button {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #cbd5e0;
+  border-radius: 8px;
+  background: white;
+  color: #2d3748;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.layout-button:hover {
+  border-color: #805ad5;
+  transform: translateY(-2px);
+}
+
+.layout-button.active {
+  background: #805ad5;
+  color: white;
+  border-color: #805ad5;
 }
 
 .dev-preview__info {
