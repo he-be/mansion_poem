@@ -15,7 +15,7 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 /**
- * カテゴリ内で競合するカードをチェックし、絶対値の大きいカードを残す
+ * カテゴリ内で競合するカードをチェックし、ランダムに1枚選んで残す
  * @param cards カードの配列
  * @returns 競合を解消したカード配列と残りの山札
  */
@@ -41,12 +41,11 @@ function resolveConflicts(
       // 競合なし - そのまま採用
       resolved.push(cards[0])
     } else {
-      // 競合あり - 絶対値最大のカードを採用、残りは山札に戻す
-      const strongest = cards.reduce((max, card) =>
-        Math.abs(card.strength) > Math.abs(max.strength) ? card : max
-      )
-      resolved.push(strongest)
-      toReturn.push(...cards.filter(c => c.id !== strongest.id))
+      // 競合あり - ランダムに1枚選び、残りは山札に戻す
+      const randomIndex = Math.floor(Math.random() * cards.length)
+      const selected = cards[randomIndex]
+      resolved.push(selected)
+      toReturn.push(...cards.filter(c => c.id !== selected.id))
     }
   }
 
