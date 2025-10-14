@@ -22,6 +22,7 @@ export interface GameState {
   selectedPairs: Record<string, SelectedPair>;
   generatedTitle: string;
   generatedPoem: string;
+  selectedBackground: string;
   isGeneratingPoem: boolean;
   poemGenerationError: string | null;
 }

@@ -4,6 +4,7 @@ import cardsData from '@/data/cards.json'
 import { selectRandomCards } from '@/utils/cardSelector'
 import { generateTitle } from '@/utils/titleGenerator'
 import { generatePoemWithGemini } from '@/utils/geminiClient'
+import { selectRandomBackground } from '@/utils/backgroundSelector'
 
 export const useGameStore = defineStore('game', {
   state: (): GameState => ({
@@ -12,6 +13,7 @@ export const useGameStore = defineStore('game', {
     selectedPairs: {},
     generatedTitle: '',
     generatedPoem: '',
+    selectedBackground: '',
     isGeneratingPoem: false,
     poemGenerationError: null,
   }),
@@ -41,6 +43,7 @@ export const useGameStore = defineStore('game', {
       this.selectedPairs = {}
       this.generatedTitle = ''
       this.generatedPoem = ''
+      this.selectedBackground = ''
       this.isGeneratingPoem = false
       this.poemGenerationError = null
       this.currentPhase = 'game'
@@ -68,23 +71,26 @@ export const useGameStore = defineStore('game', {
      * LLMによるポエム生成を含む
      */
     async generateFlyer() {
-      // タイトル生成（ルールベース）
-      this.generatedTitle = generateTitle(this.selectedPairsArray)
+      // 背景画像をランダムに選択
+      this.selectedBackground = selectRandomBackground()
 
-      // LLMによるポエム生成
+      // LLMによるポエムとタイトル生成
       this.isGeneratingPoem = true
       this.poemGenerationError = null
 
       try {
-        this.generatedPoem = await generatePoemWithGemini({
+        const result = await generatePoemWithGemini({
           selectedPairs: this.selectedPairsArray,
         })
+        this.generatedTitle = result.title
+        this.generatedPoem = result.poem
         this.currentPhase = 'result'
       } catch (error) {
         this.poemGenerationError = error instanceof Error
           ? error.message
           : 'ポエムの生成に失敗しました'
-        // エラー時はデフォルトメッセージを使用
+        // エラー時はデフォルトメッセージとフォールバックタイトルを使用
+        this.generatedTitle = generateTitle(this.selectedPairsArray)
         this.generatedPoem = 'あなたの選んだ言葉が、新しい物語を紡ぎます。'
         this.currentPhase = 'result'
       } finally {
@@ -100,13 +106,16 @@ export const useGameStore = defineStore('game', {
       this.poemGenerationError = null
 
       try {
-        this.generatedPoem = await generatePoemWithGemini({
+        const result = await generatePoemWithGemini({
           selectedPairs: this.selectedPairsArray,
         })
+        this.generatedTitle = result.title
+        this.generatedPoem = result.poem
       } catch (error) {
         this.poemGenerationError = error instanceof Error
           ? error.message
           : 'ポエムの生成に失敗しました'
+        this.generatedTitle = generateTitle(this.selectedPairsArray)
         this.generatedPoem = 'あなたの選んだ言葉が、新しい物語を紡ぎます。'
       } finally {
         this.isGeneratingPoem = false
@@ -122,6 +131,7 @@ export const useGameStore = defineStore('game', {
       this.selectedPairs = {}
       this.generatedTitle = ''
       this.generatedPoem = ''
+      this.selectedBackground = ''
       this.isGeneratingPoem = false
       this.poemGenerationError = null
     },
