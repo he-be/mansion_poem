@@ -226,4 +226,56 @@ describe('ResultView', () => {
       expect(wrapper.findComponent({ name: 'LayoutC' }).exists()).toBe(true)
     })
   })
+
+  describe('Print Functionality', () => {
+    it('renders print button', () => {
+      const mockState = createMockGameState()
+      const { pinia } = setupResultViewState(mockState)
+
+      const wrapper = mount(ResultView, {
+        global: {
+          plugins: [pinia],
+        },
+      })
+
+      // 印刷ボタンが存在することを確認
+      expect(wrapper.find('.print-button').exists()).toBe(true)
+    })
+
+    it('renders BacksidePrint component for two-sided printing', () => {
+      const mockState = createMockGameState()
+      const { pinia } = setupResultViewState(mockState)
+
+      const wrapper = mount(ResultView, {
+        global: {
+          plugins: [pinia],
+        },
+      })
+
+      // BacksidePrintコンポーネントが存在することを確認（印刷時の2ページ目）
+      const backsideComponent = wrapper.find('.backside-print')
+      expect(backsideComponent.exists()).toBe(true)
+    })
+
+    it('passes selectedPairs to BacksidePrint component', () => {
+      const mockState = createMockGameState()
+      const { pinia } = setupResultViewState(mockState)
+
+      const wrapper = mount(ResultView, {
+        global: {
+          plugins: [pinia],
+        },
+      })
+
+      // BacksidePrintコンポーネントに選択されたペアが渡されることを確認
+      const backsidePrint = wrapper.find('.backside-print')
+      expect(backsidePrint.exists()).toBe(true)
+
+      // 選択されたペアの内容が含まれることを確認
+      mockState.selectedPairs.forEach((pair) => {
+        expect(backsidePrint.text()).toContain(pair.conditionCard.condition_text)
+        expect(backsidePrint.text()).toContain(pair.selectedPoem.poem_text)
+      })
+    })
+  })
 })
