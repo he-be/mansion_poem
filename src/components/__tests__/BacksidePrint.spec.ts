@@ -74,12 +74,10 @@ describe('BacksidePrint', () => {
     expect(rows).toHaveLength(2)
 
     // 1つ目の組み合わせ
-    expect(rows[0].text()).toContain('1')
     expect(rows[0].text()).toContain('狭い部屋')
     expect(rows[0].text()).toContain('コンパクトな空間')
 
     // 2つ目の組み合わせ
-    expect(rows[1].text()).toContain('2')
     expect(rows[1].text()).toContain('駅から遠い')
     expect(rows[1].text()).toContain('静かな住環境')
   })
@@ -92,10 +90,9 @@ describe('BacksidePrint', () => {
     })
 
     const headers = wrapper.findAll('.combinations-table thead th')
-    expect(headers).toHaveLength(3)
-    expect(headers[0].text()).toBe('No.')
-    expect(headers[1].text()).toBe('現実')
-    expect(headers[2].text()).toBe('言い換え')
+    expect(headers).toHaveLength(2)
+    expect(headers[0].text()).toBe('現実')
+    expect(headers[1].text()).toBe('言い換え')
   })
 
   it('Web URLが表示される', () => {

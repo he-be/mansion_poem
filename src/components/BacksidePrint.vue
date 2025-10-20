@@ -7,14 +7,12 @@
     <table class="combinations-table">
       <thead>
         <tr>
-          <th class="col-number">No.</th>
           <th class="col-condition">現実</th>
           <th class="col-poem">言い換え</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(pair, index) in selectedPairs" :key="pair.conditionCard.id">
-          <td class="col-number">{{ index + 1 }}</td>
+        <tr v-for="pair in selectedPairs" :key="pair.conditionCard.id">
           <td class="col-condition">{{ pair.conditionCard.condition_text }}</td>
           <td class="col-poem">{{ pair.selectedPoem.poem_text }}</td>
         </tr>
@@ -68,65 +66,70 @@ onMounted(async () => {
 
 .backside-header {
   text-align: center;
-  margin-bottom: 8mm;
-  padding-bottom: 4mm;
-  border-bottom: 2px solid #000;
+  margin-bottom: 10mm;
+  padding-bottom: 5mm;
+  border-bottom: 0.5pt solid #c9a961;
 }
 
 .backside-title {
   font-family: 'Noto Serif JP', serif;
-  font-size: 18pt;
-  font-weight: 700;
+  font-size: 16pt;
+  font-weight: 500;
+  letter-spacing: 0.15em;
   margin: 0;
-  color: #000;
+  color: #2c2c2c;
 }
 
 .combinations-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 8mm;
+  margin-bottom: 10mm;
   font-family: 'Noto Serif JP', serif;
 }
 
 .combinations-table thead {
-  background: #f0f0f0;
+  background: transparent;
+  border-bottom: 1pt solid #d4af37;
 }
 
 .combinations-table th {
-  padding: 3mm 2mm;
+  padding: 4mm 4mm;
   text-align: left;
-  font-size: 10pt;
-  font-weight: 700;
-  border: 1px solid #000;
-  color: #000;
+  font-size: 9pt;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  border: none;
+  border-bottom: 1pt solid #d4af37;
+  color: #5a5a5a;
+  text-transform: uppercase;
 }
 
 .combinations-table td {
-  padding: 3mm 2mm;
+  padding: 5mm 4mm;
   font-size: 11pt;
-  line-height: 1.5;
-  border: 1px solid #666;
-  color: #000;
+  line-height: 1.7;
+  border: none;
+  border-bottom: 0.25pt solid #e5e5e5;
+  color: #2c2c2c;
   word-break: keep-all;
   overflow-wrap: break-word;
 }
 
-.col-number {
-  width: 12mm;
-  text-align: center;
+.combinations-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .col-condition {
-  width: 45%;
+  width: 50%;
 }
 
 .col-poem {
-  width: 45%;
+  width: 50%;
 }
 
 .backside-footer {
-  border-top: 2px solid #000;
-  padding-top: 6mm;
+  border-top: 0.5pt solid #c9a961;
+  padding-top: 8mm;
 }
 
 .qr-section {
@@ -137,20 +140,25 @@ onMounted(async () => {
   width: 35mm;
   height: 35mm;
   display: block;
-  margin: 0 auto 3mm;
+  margin: 0 auto 4mm;
+  border: 1pt solid #e5e5e5;
+  padding: 2mm;
 }
 
 .web-url {
-  font-size: 10pt;
-  font-weight: 700;
-  margin: 0 0 1mm 0;
-  color: #000;
+  font-size: 9pt;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  margin: 0 0 2mm 0;
+  color: #5a5a5a;
   word-break: break-all;
 }
 
 .web-description {
-  font-size: 9pt;
-  color: #666;
+  font-size: 8pt;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: #8a8a8a;
   margin: 0;
 }
 
