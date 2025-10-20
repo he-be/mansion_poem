@@ -66,57 +66,56 @@ onMounted(async () => {
 
 .backside-header {
   text-align: center;
-  margin-bottom: 10mm;
-  padding-bottom: 5mm;
-  border-bottom: 0.5pt solid #c9a961;
+  margin-bottom: 12mm;
+  padding-bottom: 6mm;
+  border-bottom: 2pt solid #000;
 }
 
 .backside-title {
   font-family: 'Noto Serif JP', serif;
-  font-size: 16pt;
-  font-weight: 500;
-  letter-spacing: 0.15em;
+  font-size: 18pt;
+  font-weight: 400;
+  letter-spacing: 0.2em;
   margin: 0;
-  color: #2c2c2c;
+  color: #000;
 }
 
 .combinations-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 10mm;
+  margin-bottom: 12mm;
   font-family: 'Noto Serif JP', serif;
 }
 
 .combinations-table thead {
   background: transparent;
-  border-bottom: 1pt solid #d4af37;
 }
 
 .combinations-table th {
-  padding: 4mm 4mm;
+  padding: 5mm 5mm 4mm;
   text-align: left;
-  font-size: 9pt;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-size: 8pt;
+  font-weight: 700;
+  letter-spacing: 0.15em;
   border: none;
-  border-bottom: 1pt solid #d4af37;
-  color: #5a5a5a;
+  border-bottom: 0.5pt solid #000;
+  color: #000;
   text-transform: uppercase;
 }
 
 .combinations-table td {
-  padding: 5mm 4mm;
+  padding: 6mm 5mm;
   font-size: 11pt;
-  line-height: 1.7;
+  line-height: 1.8;
   border: none;
-  border-bottom: 0.25pt solid #e5e5e5;
-  color: #2c2c2c;
+  border-bottom: 0.25pt solid #ccc;
+  color: #000;
   word-break: keep-all;
   overflow-wrap: break-word;
 }
 
 .combinations-table tbody tr:last-child td {
-  border-bottom: none;
+  border-bottom: 0.5pt solid #000;
 }
 
 .col-condition {
@@ -125,11 +124,12 @@ onMounted(async () => {
 
 .col-poem {
   width: 50%;
+  font-style: italic;
 }
 
 .backside-footer {
-  border-top: 0.5pt solid #c9a961;
-  padding-top: 8mm;
+  border-top: 2pt solid #000;
+  padding-top: 10mm;
 }
 
 .qr-section {
@@ -140,26 +140,27 @@ onMounted(async () => {
   width: 35mm;
   height: 35mm;
   display: block;
-  margin: 0 auto 4mm;
-  border: 1pt solid #e5e5e5;
+  margin: 0 auto 5mm;
+  border: 0.5pt solid #000;
   padding: 2mm;
 }
 
 .web-url {
   font-size: 9pt;
   font-weight: 500;
-  letter-spacing: 0.05em;
-  margin: 0 0 2mm 0;
-  color: #5a5a5a;
+  letter-spacing: 0.08em;
+  margin: 0 0 3mm 0;
+  color: #000;
   word-break: break-all;
 }
 
 .web-description {
   font-size: 8pt;
   font-weight: 400;
-  letter-spacing: 0.05em;
-  color: #8a8a8a;
+  letter-spacing: 0.12em;
+  color: #000;
   margin: 0;
+  text-transform: uppercase;
 }
 
 /* 印刷時のみ表示 */
