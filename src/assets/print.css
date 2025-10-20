@@ -47,15 +47,12 @@
     display: none !important;
   }
 
-  /* 印刷エリアをA4サイズに固定 */
+  /* 印刷エリア */
   .result-view {
-    width: 210mm;
-    height: 297mm;
-    page-break-after: always;
-    overflow: hidden;
+    overflow: visible;
   }
 
-  /* レイアウトコンテナをA4に合わせる */
+  /* レイアウトコンテナをA4に合わせる（1ページ目） */
   .layout-a,
   .layout-b,
   .layout-c {

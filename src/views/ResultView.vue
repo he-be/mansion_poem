@@ -134,6 +134,14 @@ const handlePrint = () => {
   background-color: #000000;
 }
 
+/* 印刷時はスクロールバーを消す */
+@media print {
+  .result-view {
+    overflow: visible;
+    height: auto;
+  }
+}
+
 .error-overlay {
   position: fixed;
   top: 50%;

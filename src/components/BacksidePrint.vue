@@ -69,13 +69,6 @@ onMounted(async () => {
 <style scoped>
 .backside-print {
   display: none; /* 画面表示では非表示 */
-  width: 210mm;
-  height: 297mm;
-  padding: 20mm 25mm;
-  box-sizing: border-box;
-  background: white;
-  color: #000;
-  page-break-before: always;
 }
 
 .backside-header {
@@ -201,6 +194,15 @@ onMounted(async () => {
 @media print {
   .backside-print {
     display: block;
+    width: 210mm;
+    height: 297mm;
+    padding: 20mm 25mm;
+    box-sizing: border-box;
+    background: white;
+    color: #000;
+    page-break-before: always;
+    page-break-after: always;
+    position: relative;
   }
 }
 </style>

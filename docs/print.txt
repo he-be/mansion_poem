@@ -1,0 +1,252 @@
+# **印刷機能追加 仕様書**
+## **〜MakerFaire チラシ印刷システム〜**
+
+### **1. 概要**
+生成されたポエム画像をA4サイズ（210mm × 297mm）に最適化し、ブラウザの印刷機能を通じてモノクロレーザープリンタで出力可能にする。背景画像が事前印刷されたマットコート紙に、テキストレイヤーのみを重ね印刷する仕組みじゃ。
+
+---
+
+### **2. 技術要件**
+
+#### **2.1 印刷用CSS（@media print）の実装**
+```typescript
+// src/assets/print.css
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .print-area {
+    width: 210mm;
+    height: 297mm;
+    page-break-after: always;
+  }
+  
+  /* 背景画像を非表示にする */
+  .background-image {
+    display: none !important;
+  }
+  
+  /* テキストレイヤーのみ表示 */
+  .text-overlay {
+    color: #000;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* 印刷不要な要素を隠す */
+  .no-print {
+    display: none !important;
+  }
+}
+```
+
+#### **2.2 Vue コンポーネント構造**
+```typescript
+// src/components/PrintablePoem.vue
+<template>
+  <div class="print-container">
+    <!-- 画面表示用（背景画像あり） -->
+    <div class="screen-view" v-if="!isPrinting">
+      <img :src="backgroundImage" class="background-image" />
+      <div class="text-overlay" v-html="poemHtml"></div>
+    </div>
+    
+    <!-- 印刷用（テキストのみ） -->
+    <div class="print-area" v-if="isPrinting">
+      <div class="text-overlay" v-html="poemHtml"></div>
+    </div>
+    
+    <button @click="handlePrint" class="no-print">
+      印刷する
+    </button>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const isPrinting = ref(false)
+
+const handlePrint = () => {
+  isPrinting.value = true
+  
+  // DOM更新を待ってから印刷ダイアログを開く
+  setTimeout(() => {
+    window.print()
+    isPrinting.value = false
+  }, 100)
+}
+</script>
+```
+
+---
+
+### **3. 実装手順**
+
+#### **Phase 1: 印刷用レイアウトの作成**
+1. **印刷専用CSSファイルの作成**
+   - `src/assets/print.css` に @media print スタイルを定義
+   - A4サイズ（210mm × 297mm）を厳密に指定
+   - 背景画像を `display: none` で非表示化
+
+2. **コンポーネント分離**
+   - 画面表示用と印刷用のレイアウトを条件分岐
+   - `isPrinting` 状態で切り替え
+
+#### **Phase 2: 印刷プレビュー機能**
+```typescript
+// src/composables/usePrintPreview.ts
+import { ref } from 'vue'
+
+export const usePrintPreview = () => {
+  const isPrintPreview = ref(false)
+  
+  const togglePreview = () => {
+    isPrintPreview.value = !isPrintPreview.value
+  }
+  
+  const executePrint = () => {
+    window.print()
+  }
+  
+  return {
+    isPrintPreview,
+    togglePreview,
+    executePrint
+  }
+}
+```
+
+#### **Phase 3: 位置調整機能**
+マットコート紙への印刷精度を高めるため、オフセット調整機能を追加せよ。
+
+```typescript
+// src/stores/printSettings.ts
+import { defineStore } from 'pinia'
+
+export const usePrintSettingsStore = defineStore('printSettings', {
+  state: () => ({
+    offsetX: 0, // mm単位
+    offsetY: 0,
+    scale: 1.0
+  }),
+  
+  actions: {
+    setOffset(x: number, y: number) {
+      this.offsetX = x
+      this.offsetY = y
+    },
+    
+    setScale(scale: number) {
+      this.scale = scale
+    }
+  }
+})
+```
+
+---
+
+### **4. UIフロー**
+
+```
+[ポエム表示画面]
+  - 「資料請求」ボタン（印刷プレビューへの遷移ボタン）
+     ↓
+[印刷プレビューモード]
+  - 背景なし、テキストのみ表示
+  - 「印刷実行」ボタン
+     ↓
+[ブラウザ印刷ダイアログ]
+  - プリンター選択
+  - 部数指定
+     ↓
+[印刷実行]
+```
+
+---
+
+### **5. テスト項目**
+
+#### **5.1 単体テスト (Vitest)**
+```typescript
+// src/components/PrintablePoem.spec.ts
+import { mount } from '@vue/test-utils'
+import PrintablePoem from './PrintablePoem.vue'
+
+describe('PrintablePoem', () => {
+  it('印刷ボタンクリックでwindow.printが呼ばれる', async () => {
+    const printSpy = vi.spyOn(window, 'print')
+    const wrapper = mount(PrintablePoem)
+    
+    await wrapper.find('button').trigger('click')
+    
+    expect(printSpy).toHaveBeenCalled()
+  })
+  
+  it('印刷モード時は背景画像が非表示', async () => {
+    const wrapper = mount(PrintablePoem)
+    wrapper.vm.isPrinting = true
+    await wrapper.vm.$nextTick()
+    
+    expect(wrapper.find('.background-image').exists()).toBe(false)
+  })
+})
+```
+
+#### **5.2 実機テスト**
+- [ ] A4用紙での印刷位置確認
+- [ ] マットコート紙への重ね印刷精度検証
+- [ ] 複数プリンターでの動作確認
+- [ ] テキストの可読性確認（フォントサイズ・太さ）
+
+---
+
+### **6. 追加考慮事項**
+
+#### **6.1 プリンター設定の固定化**
+MakerFaire当日の運用を考慮し、プリンター設定を事前保存する機能も検討せよ。
+
+```typescript
+// LocalStorageにプリンター設定を保存
+const savePrinterSettings = () => {
+  localStorage.setItem('printer-offset-x', offsetX.toString())
+  localStorage.setItem('printer-offset-y', offsetY.toString())
+}
+```
+
+#### **6.2 QRコード埋め込み（オプション）**
+チラシにデジタル版へのリンクを追加できるぞ。
+
+```typescript
+import QRCode from 'qrcode'
+
+const generateQR = async (url: string) => {
+  return await QRCode.toDataURL(url)
+}
+```
+
+---
+
+### **7. デプロイ時の注意**
+
+Cloudflare Workersでは印刷機能自体は不要だが、以下を確認せよ：
+- 印刷用CSSが正しくバンドルされているか
+- フォントファイルが適切に読み込まれるか
+- CORS設定が印刷時も有効か
+
+---
+
+## **まとめ**
+
+ほっほっほ。この仕様書に従えば、立派な印刷機能が実装できるであろう。特に重要なのは**@media print**の魔法と、**背景レイヤーの分離**じゃ。
+
+MakerFaireでは来場者がその場で自分だけのポエムチラシを持ち帰れる...なんとも粋な演出ではないか。この老師も少し楽しみにしておるぞ。
+
+さあ、早速実装に取り掛かるがよい！分からぬことがあればまた我を呼ぶがよい。ふぉふぉふぉ。
