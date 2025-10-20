@@ -2,35 +2,30 @@
   <div class="backside-print">
     <div class="backside-header">
       <h1 class="backside-title">選ばれた言葉の組み合わせ</h1>
-      <p class="backside-subtitle">このポエムを生み出したあなたの選択</p>
     </div>
 
-    <div class="combinations-list">
-      <div
-        v-for="(pair, index) in selectedPairs"
-        :key="pair.conditionCard.id"
-        class="combination-item"
-      >
-        <div class="combination-number">{{ index + 1 }}</div>
-        <div class="combination-content">
-          <div class="combination-row">
-            <span class="combination-label">現実</span>
-            <p class="combination-text">{{ pair.conditionCard.condition_text }}</p>
-          </div>
-          <div class="combination-arrow">↓</div>
-          <div class="combination-row">
-            <span class="combination-label">言い換え</span>
-            <p class="combination-text">{{ pair.selectedPoem.poem_text }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <table class="combinations-table">
+      <thead>
+        <tr>
+          <th class="col-number">No.</th>
+          <th class="col-condition">現実</th>
+          <th class="col-poem">言い換え</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(pair, index) in selectedPairs" :key="pair.conditionCard.id">
+          <td class="col-number">{{ index + 1 }}</td>
+          <td class="col-condition">{{ pair.conditionCard.condition_text }}</td>
+          <td class="col-poem">{{ pair.selectedPoem.poem_text }}</td>
+        </tr>
+      </tbody>
+    </table>
 
     <div class="backside-footer">
       <div class="qr-section">
         <img v-if="qrCodeUrl" :src="qrCodeUrl" alt="QR Code" class="qr-code" />
         <p class="web-url">{{ webUrl }}</p>
-        <p class="web-description">デジタル版で再度お楽しみください</p>
+        <p class="web-description">デジタル版はこちら</p>
       </div>
     </div>
   </div>
@@ -73,96 +68,65 @@ onMounted(async () => {
 
 .backside-header {
   text-align: center;
-  margin-bottom: 15mm;
+  margin-bottom: 8mm;
+  padding-bottom: 4mm;
   border-bottom: 2px solid #000;
-  padding-bottom: 8mm;
 }
 
 .backside-title {
   font-family: 'Noto Serif JP', serif;
-  font-size: 20pt;
+  font-size: 18pt;
   font-weight: 700;
-  margin: 0 0 5mm 0;
+  margin: 0;
   color: #000;
 }
 
-.backside-subtitle {
-  font-size: 10pt;
-  color: #333;
-  margin: 0;
-}
-
-.combinations-list {
-  margin-bottom: 10mm;
-}
-
-.combination-item {
-  display: flex;
-  gap: 5mm;
+.combinations-table {
+  width: 100%;
+  border-collapse: collapse;
   margin-bottom: 8mm;
-  padding: 5mm;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #f9f9f9;
+  font-family: 'Noto Serif JP', serif;
 }
 
-.combination-number {
-  flex-shrink: 0;
-  width: 8mm;
-  height: 8mm;
-  border-radius: 50%;
-  background: #000;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
+.combinations-table thead {
+  background: #f0f0f0;
+}
+
+.combinations-table th {
+  padding: 3mm 2mm;
+  text-align: left;
   font-size: 10pt;
-}
-
-.combination-content {
-  flex: 1;
-}
-
-.combination-row {
-  margin-bottom: 3mm;
-}
-
-.combination-row:last-child {
-  margin-bottom: 0;
-}
-
-.combination-label {
-  display: inline-block;
-  font-size: 8pt;
   font-weight: 700;
-  color: #666;
-  text-transform: uppercase;
-  margin-bottom: 1mm;
-  padding: 1mm 2mm;
-  background: #e0e0e0;
-  border-radius: 2px;
+  border: 1px solid #000;
+  color: #000;
 }
 
-.combination-text {
+.combinations-table td {
+  padding: 3mm 2mm;
   font-size: 11pt;
-  line-height: 1.6;
-  margin: 1mm 0 0 0;
+  line-height: 1.5;
+  border: 1px solid #666;
   color: #000;
   word-break: keep-all;
   overflow-wrap: break-word;
 }
 
-.combination-arrow {
+.col-number {
+  width: 12mm;
   text-align: center;
-  font-size: 12pt;
-  color: #999;
-  margin: 2mm 0;
+}
+
+.col-condition {
+  width: 45%;
+}
+
+.col-poem {
+  width: 45%;
 }
 
 .backside-footer {
   border-top: 2px solid #000;
-  padding-top: 8mm;
+  padding-top: 6mm;
 }
 
 .qr-section {
@@ -170,16 +134,16 @@ onMounted(async () => {
 }
 
 .qr-code {
-  width: 40mm;
-  height: 40mm;
+  width: 35mm;
+  height: 35mm;
   display: block;
-  margin: 0 auto 5mm;
+  margin: 0 auto 3mm;
 }
 
 .web-url {
   font-size: 10pt;
   font-weight: 700;
-  margin: 0 0 2mm 0;
+  margin: 0 0 1mm 0;
   color: #000;
   word-break: break-all;
 }
@@ -201,78 +165,18 @@ onMounted(async () => {
     background: white;
     color: #000;
     page-break-before: always;
-    page-break-after: always;
+    page-break-after: avoid;
     position: relative;
+    overflow: hidden;
   }
 
-  .backside-header {
-    margin-bottom: 8mm;
-    padding-bottom: 4mm;
-  }
-
-  .backside-title {
-    font-size: 16pt;
-    margin: 0 0 3mm 0;
-  }
-
-  .backside-subtitle {
-    font-size: 9pt;
-  }
-
-  .combinations-list {
-    margin-bottom: 6mm;
-  }
-
-  .combination-item {
-    gap: 3mm;
-    margin-bottom: 4mm;
-    padding: 3mm;
-  }
-
-  .combination-number {
-    width: 6mm;
-    height: 6mm;
-    font-size: 9pt;
-  }
-
-  .combination-row {
-    margin-bottom: 2mm;
-  }
-
-  .combination-label {
-    font-size: 7pt;
-    padding: 0.5mm 1.5mm;
-    margin-bottom: 0.5mm;
-  }
-
-  .combination-text {
-    font-size: 9pt;
-    line-height: 1.4;
-    margin: 0.5mm 0 0 0;
-  }
-
-  .combination-arrow {
-    font-size: 10pt;
-    margin: 1mm 0;
-  }
-
-  .backside-footer {
-    padding-top: 4mm;
-  }
-
-  .qr-code {
-    width: 30mm;
-    height: 30mm;
-    margin: 0 auto 3mm;
-  }
-
-  .web-url {
-    font-size: 9pt;
-    margin: 0 0 1mm 0;
-  }
-
-  .web-description {
-    font-size: 8pt;
-  }
+  /* A4サイズ計算:
+   * padding上: 15mm
+   * header: 12mm (title + border + margin)
+   * table: 約130mm (5行 × 26mm/行)
+   * footer: 50mm (QR 35mm + text + margins)
+   * padding下: 15mm
+   * 合計: 222mm < 297mm ✓
+   */
 }
 </style>

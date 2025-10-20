@@ -50,7 +50,7 @@ describe('BacksidePrint', () => {
     expect(wrapper.find('.backside-print').exists()).toBe(true)
   })
 
-  it('タイトルとサブタイトルが表示される', () => {
+  it('タイトルが表示される', () => {
     const wrapper = mount(BacksidePrint, {
       props: {
         selectedPairs: mockSelectedPairs,
@@ -58,39 +58,44 @@ describe('BacksidePrint', () => {
     })
 
     expect(wrapper.find('.backside-title').text()).toBe('選ばれた言葉の組み合わせ')
-    expect(wrapper.find('.backside-subtitle').text()).toBe('このポエムを生み出したあなたの選択')
   })
 
-  it('選択された組み合わせがすべて表示される', () => {
+  it('選択された組み合わせがテーブルで表示される', () => {
     const wrapper = mount(BacksidePrint, {
       props: {
         selectedPairs: mockSelectedPairs,
       },
     })
 
-    const combinationItems = wrapper.findAll('.combination-item')
-    expect(combinationItems).toHaveLength(2)
+    const table = wrapper.find('.combinations-table')
+    expect(table.exists()).toBe(true)
+
+    const rows = wrapper.findAll('.combinations-table tbody tr')
+    expect(rows).toHaveLength(2)
 
     // 1つ目の組み合わせ
-    expect(combinationItems[0].text()).toContain('狭い部屋')
-    expect(combinationItems[0].text()).toContain('コンパクトな空間')
+    expect(rows[0].text()).toContain('1')
+    expect(rows[0].text()).toContain('狭い部屋')
+    expect(rows[0].text()).toContain('コンパクトな空間')
 
     // 2つ目の組み合わせ
-    expect(combinationItems[1].text()).toContain('駅から遠い')
-    expect(combinationItems[1].text()).toContain('静かな住環境')
+    expect(rows[1].text()).toContain('2')
+    expect(rows[1].text()).toContain('駅から遠い')
+    expect(rows[1].text()).toContain('静かな住環境')
   })
 
-  it('各組み合わせに番号が表示される', () => {
+  it('テーブルヘッダーが正しく表示される', () => {
     const wrapper = mount(BacksidePrint, {
       props: {
         selectedPairs: mockSelectedPairs,
       },
     })
 
-    const numbers = wrapper.findAll('.combination-number')
-    expect(numbers).toHaveLength(2)
-    expect(numbers[0].text()).toBe('1')
-    expect(numbers[1].text()).toBe('2')
+    const headers = wrapper.findAll('.combinations-table thead th')
+    expect(headers).toHaveLength(3)
+    expect(headers[0].text()).toBe('No.')
+    expect(headers[1].text()).toBe('現実')
+    expect(headers[2].text()).toBe('言い換え')
   })
 
   it('Web URLが表示される', () => {
@@ -111,7 +116,7 @@ describe('BacksidePrint', () => {
     })
 
     expect(wrapper.find('.qr-section').exists()).toBe(true)
-    expect(wrapper.find('.web-description').text()).toBe('デジタル版で再度お楽しみください')
+    expect(wrapper.find('.web-description').text()).toBe('デジタル版はこちら')
   })
 
   it('QRコードが生成される', async () => {
