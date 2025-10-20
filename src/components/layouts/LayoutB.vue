@@ -130,4 +130,51 @@ const remainingText = computed(() => {
     font-size: clamp(0.85rem, 3vw, 1rem);
   }
 }
+
+/* 印刷用スタイル */
+@media print {
+  .layout-b {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+  }
+
+  .background-image {
+    display: none !important;
+  }
+
+  .featured-sentence {
+    top: 30mm;
+    right: 15mm;
+    max-width: 90mm;
+    font-size: 32pt;
+    color: #000000;
+    text-shadow: none;
+    text-align: right;
+  }
+
+  .content-panel {
+    bottom: 25mm;
+    left: 15mm;
+    max-width: 85mm;
+    background: none;
+    backdrop-filter: none;
+    padding: 0;
+    border: none;
+  }
+
+  .small-title {
+    font-size: 16pt;
+    color: #000000;
+    margin: 0 0 10mm 0;
+    text-align: left;
+  }
+
+  .remaining-text {
+    font-size: 12pt;
+    color: #000000;
+    line-height: 2;
+    text-align: left;
+  }
+}
 </style>

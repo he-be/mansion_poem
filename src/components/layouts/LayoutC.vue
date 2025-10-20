@@ -195,4 +195,68 @@ const handleScroll = (event: Event) => {
     padding: 1rem;
   }
 }
+
+/* 印刷用スタイル */
+@media print {
+  .layout-c {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+  }
+
+  .background-image {
+    display: none !important;
+  }
+
+  .scroll-container {
+    position: relative;
+    width: 210mm;
+    height: auto;
+    overflow: visible;
+    scroll-behavior: auto;
+  }
+
+  .spacer {
+    display: none !important;
+  }
+
+  .text-section {
+    min-height: auto;
+    padding: 20mm 25mm 10mm;
+    opacity: 1 !important;
+    transform: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .animated-title {
+    font-size: 24pt;
+    color: #000000;
+    text-shadow: none;
+    margin: 0;
+    text-align: center;
+  }
+
+  .poem-lines {
+    padding: 10mm 25mm 20mm;
+    max-width: none;
+    margin: 0 auto;
+  }
+
+  .poem-line {
+    font-size: 12pt;
+    color: #000000;
+    text-shadow: none;
+    line-height: 2;
+    margin-bottom: 8mm;
+    padding: 0;
+    border-left: none;
+    background: none;
+    backdrop-filter: none;
+    opacity: 1 !important;
+    transform: none !important;
+    text-align: left;
+  }
+}
 </style>

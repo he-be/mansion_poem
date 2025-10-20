@@ -121,4 +121,48 @@ defineOptions({
     line-break: auto;
   }
 }
+
+/* 印刷用スタイル */
+@media print {
+  .layout-a {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+  }
+
+  .background-image {
+    display: none !important;
+  }
+
+  .poem-overlay {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    padding: 30mm 25mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .poem-title {
+    font-size: 28pt;
+    color: #000000;
+    text-shadow: none;
+    margin: 0 0 20mm 0;
+    text-align: center;
+  }
+
+  .poem-text {
+    font-size: 14pt;
+    color: #000000;
+    text-shadow: none;
+    line-height: 2.2;
+    text-align: center;
+    width: 100%;
+    max-width: 160mm;
+  }
+}
 </style>

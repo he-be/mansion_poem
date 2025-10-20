@@ -1,0 +1,67 @@
+/**
+ * 印刷用スタイルシート
+ * マットコート紙への重ね印刷用（背景画像は事前印刷済み）
+ */
+
+@media print {
+  /* A4サイズ固定、余白なし */
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* 背景画像を非表示にする */
+  .background-image {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* テキストレイヤーのカラー設定を維持 */
+  .text-overlay,
+  .featured-sentence,
+  .content-panel,
+  .poem-title,
+  .poem-text,
+  .small-title,
+  .remaining-text {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* 印刷不要な要素を隠す */
+  .no-print,
+  .menu-toggle,
+  .side-menu,
+  button {
+    display: none !important;
+  }
+
+  /* エラーオーバーレイも非表示 */
+  .error-overlay {
+    display: none !important;
+  }
+
+  /* 印刷エリアをA4サイズに固定 */
+  .result-view {
+    width: 210mm;
+    height: 297mm;
+    page-break-after: always;
+    overflow: hidden;
+  }
+
+  /* レイアウトコンテナをA4に合わせる */
+  .layout-a,
+  .layout-b,
+  .layout-c {
+    width: 210mm;
+    height: 297mm;
+    position: relative;
+    overflow: hidden;
+  }
+}

@@ -36,6 +36,11 @@
       <span v-else>✕</span>
     </button>
 
+    <!-- 印刷ボタン -->
+    <button class="print-button" @click="handlePrint" aria-label="資料請求">
+      📄
+    </button>
+
     <!-- スライドメニュー -->
     <Transition name="slide">
       <div v-if="isMenuOpen" class="side-menu">
@@ -110,6 +115,10 @@ const handleRestart = () => {
 const handleRetry = async () => {
   await gameStore.retryPoemGeneration()
 }
+
+const handlePrint = () => {
+  window.print()
+}
 </script>
 
 <style scoped>
@@ -165,6 +174,36 @@ const handleRetry = async () => {
 }
 
 .menu-toggle:active {
+  transform: scale(0.95);
+}
+
+/* 印刷ボタン */
+.print-button {
+  position: fixed;
+  bottom: 2rem;
+  right: 5.5rem;
+  z-index: 100;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.print-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.5);
+}
+
+.print-button:active {
   transform: scale(0.95);
 }
 
@@ -285,6 +324,14 @@ const handleRetry = async () => {
     height: 50px;
     bottom: 1.5rem;
     right: 1.5rem;
+    font-size: 1.25rem;
+  }
+
+  .print-button {
+    width: 50px;
+    height: 50px;
+    bottom: 1.5rem;
+    right: 4.5rem;
     font-size: 1.25rem;
   }
 
