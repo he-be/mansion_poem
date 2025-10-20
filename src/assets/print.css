@@ -63,5 +63,20 @@
     height: 297mm;
     position: relative;
     overflow: hidden;
+    page-break-after: always;
+  }
+
+  /* 裏面印刷設定 */
+  .backside-print {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* QRコードの表示設定 */
+  .qr-code {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 }

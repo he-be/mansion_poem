@@ -41,6 +41,9 @@
       📄
     </button>
 
+    <!-- 裏面（印刷時のみ表示） -->
+    <BacksidePrint :selected-pairs="gameStore.selectedPairsArray" />
+
     <!-- スライドメニュー -->
     <Transition name="slide">
       <div v-if="isMenuOpen" class="side-menu">
@@ -86,6 +89,7 @@ import AppButton from '@/components/common/AppButton.vue'
 import LayoutA from '@/components/layouts/LayoutA.vue'
 import LayoutB from '@/components/layouts/LayoutB.vue'
 import LayoutC from '@/components/layouts/LayoutC.vue'
+import BacksidePrint from '@/components/BacksidePrint.vue'
 import type { LayoutStyle } from '@/types/layout'
 
 interface Props {
