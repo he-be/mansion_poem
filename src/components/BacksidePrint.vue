@@ -196,13 +196,83 @@ onMounted(async () => {
     display: block;
     width: 210mm;
     height: 297mm;
-    padding: 20mm 25mm;
+    padding: 15mm 20mm;
     box-sizing: border-box;
     background: white;
     color: #000;
     page-break-before: always;
     page-break-after: always;
     position: relative;
+  }
+
+  .backside-header {
+    margin-bottom: 8mm;
+    padding-bottom: 4mm;
+  }
+
+  .backside-title {
+    font-size: 16pt;
+    margin: 0 0 3mm 0;
+  }
+
+  .backside-subtitle {
+    font-size: 9pt;
+  }
+
+  .combinations-list {
+    margin-bottom: 6mm;
+  }
+
+  .combination-item {
+    gap: 3mm;
+    margin-bottom: 4mm;
+    padding: 3mm;
+  }
+
+  .combination-number {
+    width: 6mm;
+    height: 6mm;
+    font-size: 9pt;
+  }
+
+  .combination-row {
+    margin-bottom: 2mm;
+  }
+
+  .combination-label {
+    font-size: 7pt;
+    padding: 0.5mm 1.5mm;
+    margin-bottom: 0.5mm;
+  }
+
+  .combination-text {
+    font-size: 9pt;
+    line-height: 1.4;
+    margin: 0.5mm 0 0 0;
+  }
+
+  .combination-arrow {
+    font-size: 10pt;
+    margin: 1mm 0;
+  }
+
+  .backside-footer {
+    padding-top: 4mm;
+  }
+
+  .qr-code {
+    width: 30mm;
+    height: 30mm;
+    margin: 0 auto 3mm;
+  }
+
+  .web-url {
+    font-size: 9pt;
+    margin: 0 0 1mm 0;
+  }
+
+  .web-description {
+    font-size: 8pt;
   }
 }
 </style>
