@@ -153,6 +153,9 @@ defineOptions({
     text-shadow: none;
     margin: 0 0 20mm 0;
     text-align: center;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    line-break: strict;
   }
 
   .poem-text {

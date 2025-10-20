@@ -151,6 +151,9 @@ const remainingText = computed(() => {
     color: #000000;
     text-shadow: none;
     text-align: right;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    line-break: strict;
   }
 
   .content-panel {
@@ -168,6 +171,9 @@ const remainingText = computed(() => {
     color: #000000;
     margin: 0 0 10mm 0;
     text-align: left;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    line-break: strict;
   }
 
   .remaining-text {
