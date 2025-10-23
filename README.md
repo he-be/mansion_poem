@@ -44,6 +44,7 @@
 
 - Node.js 18以上
 - npm
+- (オプション) LM Studio または OpenAI互換のローカルLLM
 
 ### インストール
 
@@ -56,6 +57,21 @@ npm run dev
 ```
 
 開発サーバーは `http://localhost:5173` で起動します。
+
+### ローカルLLMの使用（オプション）
+
+開発環境でローカルLLM（LM Studio等）を使用する場合：
+
+1. `.env` ファイルで `VITE_LOCAL_LLM_URL` を設定
+2. `npm run dev` で自動的にローカルLLMサーバーが起動
+3. Vue AppからのAPIリクエストがViteプロキシ経由でローカルLLMに転送される
+
+**動作フロー**:
+```
+Vue App → /api/generate-poem → Vite Proxy → dev-server (localhost:3001) → LM Studio
+```
+
+本番デプロイ時は従来通りCloudflare Worker経由でGemini APIを使用します。
 
 ### ビルド
 
