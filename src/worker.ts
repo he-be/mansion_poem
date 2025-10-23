@@ -12,6 +12,28 @@ export interface Env {
   CARDS_KV: KVNamespace;
   // D1 Database バインディング
   DB: D1Database;
+  // 環境変数（development, production）
+  ENVIRONMENT?: string;
+}
+
+// セキュリティヘッダーを追加するヘルパー関数
+function addSecurityHeaders(response: Response): Response {
+  const newHeaders = new Headers(response.headers);
+
+  // セキュリティヘッダー
+  newHeaders.set('X-Frame-Options', 'DENY');
+  newHeaders.set('X-Content-Type-Options', 'nosniff');
+  newHeaders.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  newHeaders.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+
+  // HTTPS接続時のみHSTSヘッダーを追加
+  newHeaders.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: newHeaders,
+  });
 }
 
 export default {
@@ -20,22 +42,13 @@ export default {
 
     // API エンドポイント: /api/generate-poem
     if (url.pathname === '/api/generate-poem' && request.method === 'POST') {
-      return handleGeneratePoem(request, env);
-    }
-
-    // CORS preflight
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-        },
-      });
+      const response = await handleGeneratePoem(request, env);
+      return addSecurityHeaders(response);
     }
 
     // Static Assets を配信 (Vue SPA)
-    return env.ASSETS.fetch(request);
+    const response = await env.ASSETS.fetch(request);
+    return addSecurityHeaders(response);
   },
 };
 
@@ -117,7 +130,9 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
 
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text();
-      console.error('Gemini API error:', errorText);
+      if (env.ENVIRONMENT !== 'production') {
+        console.error('Gemini API error:', errorText);
+      }
       throw new Error(`Gemini API error: ${geminiResponse.status}`);
     }
 
@@ -131,7 +146,9 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
     const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!generatedText) {
-      console.error('Gemini API response:', data);
+      if (env.ENVIRONMENT !== 'production') {
+        console.error('Gemini API response:', data);
+      }
       throw new Error('Gemini APIからテキストが生成されませんでした');
     }
 
@@ -153,7 +170,9 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
         throw new Error('titleまたはpoemが見つかりません');
       }
     } catch (parseError) {
-      console.error('JSON parse error:', parseError, 'Raw text:', trimmedText);
+      if (env.ENVIRONMENT !== 'production') {
+        console.error('JSON parse error:', parseError, 'Raw text:', trimmedText);
+      }
       throw new Error('生成されたテキストのJSON解析に失敗しました');
     }
 
@@ -164,13 +183,14 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
     try {
       await logGeneration(env, selectedPairs, generatedPoem, generationTime, true);
     } catch (logErr) {
-      console.error('Failed to log generation:', logErr);
+      if (env.ENVIRONMENT !== 'production') {
+        console.error('Failed to log generation:', logErr);
+      }
     }
 
     return new Response(JSON.stringify({ title, poem: generatedPoem }), {
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
       },
     });
   } catch (err) {
@@ -181,17 +201,27 @@ async function handleGeneratePoem(request: Request, env: Env): Promise<Response>
     try {
       await logGeneration(env, [], '', generationTime, false, error);
     } catch (logErr) {
-      console.error('Failed to log error:', logErr);
+      // 本番環境ではログエラーを抑制
+      if (env.ENVIRONMENT !== 'production') {
+        console.error('Failed to log error:', logErr);
+      }
     }
 
-    console.error('Error generating poem:', err);
+    // 本番環境では詳細なエラーメッセージを隠蔽
+    if (env.ENVIRONMENT !== 'production') {
+      console.error('Error generating poem:', err);
+    }
+
     return new Response(
-      JSON.stringify({ error }),
+      JSON.stringify({
+        error: env.ENVIRONMENT === 'production'
+          ? 'ポエムの生成に失敗しました。しばらく経ってから再度お試しください。'
+          : error
+      }),
       {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
         },
       }
     );
@@ -208,10 +238,14 @@ async function logGeneration(
   _errorMessage?: string
 ): Promise<void> {
   try {
-    console.log('Logging to DB...', { hasDB: !!env.DB, pairsCount: selectedPairs.length });
+    if (env.ENVIRONMENT !== 'production') {
+      console.log('Logging to DB...', { hasDB: !!env.DB, pairsCount: selectedPairs.length });
+    }
 
     if (!env.DB) {
-      console.error('env.DB is undefined!');
+      if (env.ENVIRONMENT !== 'production') {
+        console.error('env.DB is undefined!');
+      }
       return;
     }
 
@@ -225,9 +259,13 @@ async function logGeneration(
       isSuccessful ? 1 : 0
     ).run();
 
-    console.log('DB log success:', result.meta);
+    if (env.ENVIRONMENT !== 'production') {
+      console.log('DB log success:', result.meta);
+    }
   } catch (err) {
-    console.error('DB log failed:', err);
+    if (env.ENVIRONMENT !== 'production') {
+      console.error('DB log failed:', err);
+    }
   }
 }
 
