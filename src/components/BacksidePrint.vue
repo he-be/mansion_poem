@@ -67,8 +67,6 @@ onMounted(async () => {
 .backside-header {
   text-align: center;
   margin-bottom: 12mm;
-  padding-bottom: 6mm;
-  border-bottom: 2pt solid #000;
 }
 
 .backside-title {
@@ -92,13 +90,12 @@ onMounted(async () => {
 }
 
 .combinations-table th {
-  padding: 5mm 5mm 4mm;
-  text-align: left;
+  padding: 5mm 5mm 6mm;
+  text-align: center;
   font-size: 8pt;
   font-weight: 700;
   letter-spacing: 0.15em;
   border: none;
-  border-bottom: 0.5pt solid #000;
   color: #000;
   text-transform: uppercase;
 }
@@ -108,14 +105,9 @@ onMounted(async () => {
   font-size: 11pt;
   line-height: 1.8;
   border: none;
-  border-bottom: 0.25pt solid #ccc;
   color: #000;
   word-break: keep-all;
   overflow-wrap: break-word;
-}
-
-.combinations-table tbody tr:last-child td {
-  border-bottom: 0.5pt solid #000;
 }
 
 .col-condition {
@@ -128,7 +120,6 @@ onMounted(async () => {
 }
 
 .backside-footer {
-  border-top: 2pt solid #000;
   padding-top: 10mm;
 }
 

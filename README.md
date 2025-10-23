@@ -1,8 +1,19 @@
-# マンションポエマー
+<div style="background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%); padding: 3rem 2rem; border-radius: 12px; border: 2px solid #d4af37; box-shadow: 0 8px 32px rgba(212, 175, 55, 0.3);">
 
-現実という名の素材を、言葉という名の芸術へ。
+<h1 align="center" style="background: linear-gradient(135deg, #ffd700 0%, #d4af37 50%, #c9a02c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Noto Serif JP', 'Georgia', 'Times New Roman', serif; font-size: 2.5em; font-weight: 700; letter-spacing: 0.05em; margin: 0 0 1.5rem 0; filter: drop-shadow(0 4px 8px rgba(212, 175, 55, 0.5));">マンションポエム、堂々完成。</h1>
 
-マンション広告風のポエムを生成するインタラクティブなWebアプリケーション。
+<p align="center" style="color: #e8e8e8; font-family: 'Noto Serif JP', 'Georgia', 'Times New Roman', serif; font-size: 1.15em; line-height: 1.9; letter-spacing: 0.03em; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8); margin: 0;">
+ようこそ。ここは、あなたの美意識が試される場所。<br>
+無作為に提示される<span style="color: #d4af37; font-weight: 600;">『現実』</span>という名の原石たち。<br>
+それらに<span style="color: #d4af37; font-weight: 600;">『崇高なる言い換え』</span>を与え、新たな価値を宿すのは、あなた自身。<br>
+ままならない現実は、唯一無二の<span style="color: #d4af37; font-weight: 600;">『ポエム』</span>へと昇華される。<br>
+その哲学は、一枚の<span style="color: #d4af37; font-weight: 600;">『証』</span>として、あなたの手元へ。<br>
+<br>
+<strong style="color: #ffd700; font-size: 1.1em; letter-spacing: 0.05em; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);">言葉の錬金術。その完成形が、今、ここに。</strong>
+</p>
+
+</div>
+
 
 ## 🎯 概要
 
@@ -109,31 +120,6 @@ npm run deploy
 ✨ Successfully deployed mansionpoem
 🌍 https://mansionpoem.your-account.workers.dev
 ```
-
-## 🎨 開発用プレビュー画面
-
-レイアウトの調整やデザイン確認のため、ホットリロード対応のプレビュー画面を用意しています：
-
-```bash
-# 開発サーバーを起動
-npm run dev
-
-# ブラウザで以下にアクセス
-http://localhost:5173/dev-preview
-```
-
-**機能:**
-- 複数のサンプルデータを切り替えて表示
-- 短いポエム、長いポエム、特殊なタイトルなど様々なパターン
-- ランダム選択機能
-- ホットリロード対応（コード変更が即座に反映）
-
-このプレビュー画面を使うことで、UI操作なしに様々なレイアウトパターンを素早く確認できます。
-
-**⚠️ セキュリティ:**
-- このプレビュー画面は**開発環境でのみ有効**です
-- 本番ビルド時には自動的に除外され、デプロイされません
-- `import.meta.env.DEV`による環境判定で保護されています
 
 ## 📝 スクリプト
 
@@ -256,26 +242,6 @@ Gemini APIへのプロンプトは `src/data/prompt.txt` で管理されてい�
 npx wrangler kv key put "prompt:poem_generation" --path="src/data/prompt.txt" --namespace-id 52e86897f88e44bda74c9bde3e3a1807
 ```
 
-## 🧪 品質保証
-
-このプロジェクトは以下の品質ゲートを備えています：
-
-### pre-commit hooks
-コミット時に自動実行される品質チェック：
-- **型チェック**: `vue-tsc --noEmit --skipLibCheck`
-- **テスト実行**: すべてのテストが成功することを確認
-
-### テスト構成
-- **フレームワーク**: Vitest + Vue Test Utils
-- **環境**: happy-dom（軽量DOMエミュレーション）
-- **カバレッジ**: v8プロバイダー
-- **テストヘルパー**: モックファクトリー、状態セットアップヘルパー
-- **テスト対象**:
-  - コンポーネント（AppButton、ConditionCard、PoemCard等）
-  - ビュー（ResultView - UI操作なしでテスト可能）
-  - ストア（gameStore）
-  - ユーティリティ関数（cardSelector、titleGenerator等）
-
 ### 実行方法
 ```bash
 # ウォッチモードでテスト実行
@@ -291,54 +257,8 @@ npm run test:ui
 npm run test:coverage
 ```
 
-### テストヘルパーの使い方
-
-UI操作を経由せずに、直接結果画面の状態をテストできます：
-
-```typescript
-import { setupResultViewState, createMockGameState } from '@/test-utils'
-
-// モックデータを生成
-const mockState = createMockGameState()
-
-// 結果画面の状態を直接セットアップ（ボタンクリック不要）
-const { pinia, store } = setupResultViewState(mockState)
-
-// これでResultViewをマウントしてテスト可能
-const wrapper = mount(ResultView, {
-  global: { plugins: [pinia] }
-})
-```
-
-カスタムデータでのテスト：
-
-```typescript
-import { createMockSelectedPair, setupResultViewState } from '@/test-utils'
-
-const customState = {
-  selectedPairs: [
-    createMockSelectedPair({ /* カスタマイズ */ }),
-    // ... 残り4つ
-  ],
-  generatedTitle: 'カスタムタイトル',
-  generatedPoem: 'カスタムポエム',
-}
-
-const { pinia } = setupResultViewState(customState)
-```
-
 ## 🔐 セキュリティ
 
 - **APIキー管理**: Gemini APIキーはCloudflare Secrets Storeで安全に管理
 - **サーバーサイド処理**: APIキーはWorker側で使用され、クライアントに公開されません
 - **環境分離**: 開発環境と本番環境でシークレットを分離可能
-
-## 📄 ライセンス
-
-このプロジェクトはプライベートプロジェクトです。
-
-## 🙏 謝辞
-
-- **Google Gemini API**: ポエム生成のAIエンジン
-- **Cloudflare Workers**: サーバーレスデプロイ環境
-- **Vue.js**: フロントエンドフレームワーク
