@@ -9,6 +9,7 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import Database from 'better-sqlite3';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,6 +36,62 @@ const promptTemplate = fs.readFileSync(
   path.join(__dirname, '../src/data/prompt.txt'),
   'utf-8'
 );
+
+// SQLiteデータベースの初期化
+const dbPath = path.join(__dirname, 'dev-logs.db');
+const db = new Database(dbPath);
+
+// テーブル作成（本番D1と互換性のあるスキーマ + 開発用追加フィールド）
+db.exec(`
+  CREATE TABLE IF NOT EXISTS generation_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- 本番環境と共通
+    selected_cards TEXT NOT NULL,
+    generated_poem TEXT NOT NULL,
+    generation_time_ms INTEGER,
+    is_successful BOOLEAN DEFAULT 1,
+
+    -- 開発環境専用（実験データ収集用）
+    llm_provider TEXT,
+    llm_model TEXT,
+    prompt_text TEXT
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_generation_logs_created_at
+    ON generation_logs(created_at);
+  CREATE INDEX IF NOT EXISTS idx_generation_logs_provider
+    ON generation_logs(llm_provider);
+`);
+
+console.log(`📊 Database initialized: ${dbPath}`);
+
+/**
+ * ログをデータベースに記録
+ */
+function logToDatabase(data) {
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO generation_logs (
+        selected_cards, generated_poem, generation_time_ms, is_successful,
+        llm_provider, llm_model, prompt_text
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    stmt.run(
+      JSON.stringify(data.selectedCards),
+      JSON.stringify(data.generatedPoem),
+      data.generationTimeMs,
+      data.isSuccessful ? 1 : 0,
+      data.llmProvider,
+      data.llmModel,
+      data.promptText
+    );
+  } catch (error) {
+    console.error('[DB] Failed to log:', error.message);
+  }
+}
 
 /**
  * ランダムにキャッチフレーズを選択（worker.tsと同じロジック）
@@ -188,11 +245,33 @@ app.post('/api/generate-poem', async (req, res) => {
     const generationTime = Date.now() - startTime;
     console.log(`[${LLM_PROVIDER.toUpperCase()}] ✓ Generated in ${generationTime}ms`);
 
+    // 成功時のログを記録
+    logToDatabase({
+      selectedCards: selectedPairs,
+      generatedPoem: { title, poem },
+      generationTimeMs: generationTime,
+      isSuccessful: true,
+      llmProvider: LLM_PROVIDER,
+      llmModel: LLM_PROVIDER === 'openrouter' ? OPENROUTER_MODEL : 'lm-studio-local',
+      promptText: prompt
+    });
+
     res.json({ title, poem });
 
   } catch (error) {
     const generationTime = Date.now() - startTime;
     console.error(`[${LLM_PROVIDER.toUpperCase()}] ✗ Error after ${generationTime}ms:`, error.message);
+
+    // 失敗時のログを記録
+    logToDatabase({
+      selectedCards: selectedPairs,
+      generatedPoem: { error: error.message },
+      generationTimeMs: generationTime,
+      isSuccessful: false,
+      llmProvider: LLM_PROVIDER,
+      llmModel: LLM_PROVIDER === 'openrouter' ? OPENROUTER_MODEL : 'lm-studio-local',
+      promptText: prompt || ''
+    });
 
     res.status(500).json({
       error: error.message || 'ポエムの生成に失敗しました'
@@ -217,6 +296,12 @@ app.listen(PORT, () => {
   } else {
     console.log(`   URL: ${LM_STUDIO_URL}`);
   }
+
+  // ログ記録件数を表示
+  const logCount = db.prepare('SELECT COUNT(*) as count FROM generation_logs').get();
+  console.log(`\n📊 Database:`);
+  console.log(`   Path: ${dbPath}`);
+  console.log(`   Logs: ${logCount.count} records`);
 
   console.log(`\n💡 To change provider, edit DEV_LLM_PROVIDER in .env file`);
   console.log(`   - lmstudio: Local LM Studio (offline)`);

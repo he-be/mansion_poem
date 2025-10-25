@@ -30,5 +30,10 @@ dist-ssr
 # Generated/Downloaded files
 generation_logs.json
 
+# Development server logs
+dev-server/*.db
+dev-server/*.db-journal
+dev-server/*.db-wal
+
 # Test coverage
 coverage/
