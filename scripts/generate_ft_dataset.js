@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_MODEL = 'google/gemini-2.5-flash-preview-09-2025';
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const SAMPLE_COUNT = 200; // 生成するサンプル数
+const SAMPLE_COUNT = 1800; // 生成するサンプル数
 const OUTPUT_FILE = path.join(__dirname, '../datasets/mansion_poem_ft.jsonl');
 
 // データ読み込み
@@ -29,7 +29,7 @@ const catchphrasesData = JSON.parse(
   fs.readFileSync(path.join(__dirname, '../src/data/catchphrases.json'), 'utf-8')
 );
 const promptTemplate = fs.readFileSync(
-  path.join(__dirname, '../src/data/prompt.txt'),
+  path.join(__dirname, '../src/data/prompt_for_dataset.txt'),
   'utf-8'
 );
 
