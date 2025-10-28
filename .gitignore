@@ -37,3 +37,7 @@ dev-server/*.db-wal
 
 # Test coverage
 coverage/
+venv*
+notebooks/unsloth_compiled_cache*
+notebooks/outputs*
+datasets*
