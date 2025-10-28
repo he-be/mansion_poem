@@ -44,7 +44,7 @@
 
 - Node.js 18以上
 - npm
-- (オプション) LM Studio または OpenAI互換のローカルLLM
+- llama.cpp サーバー + ファインチューニングモデル（`gpt-oss-20b-mansion-poem-20epoch-mxfp4.gguf`）
 
 ### インストール
 
@@ -58,20 +58,32 @@ npm run dev
 
 開発サーバーは `http://localhost:5173` で起動します。
 
-### ローカルLLMの使用（オプション）
+### ローカルLLM（llama.cpp）の使用
 
-開発環境でローカルLLM（LM Studio等）を使用する場合：
+開発環境ではファインチューニングモデル（`gpt-oss-20b-mansion-poem-20epoch-mxfp4.gguf`）を使用します。
 
-1. `.env` ファイルで `VITE_LOCAL_LLM_URL` を設定
-2. `npm run dev` で自動的にローカルLLMサーバーが起動
-3. Vue AppからのAPIリクエストがViteプロキシ経由でローカルLLMに転送される
+#### 1. llama.cpp サーバーの起動
+
+```bash
+# llama.cpp ディレクトリで実行
+./llama-server -m gpt-oss-20b-mansion-poem-20epoch-mxfp4.gguf \
+  --jinja -ngl 99 --threads -1 --ctx-size 16384 \
+  --temp 1.0 --top-p 1.0 --top-k 0 \
+  --host 0.0.0.0 --port 8080
+```
+
+#### 2. 開発サーバーの起動
+
+```bash
+npm run dev
+```
 
 **動作フロー**:
 ```
-Vue App → /api/generate-poem → Vite Proxy → dev-server (localhost:3001) → LM Studio
+Vue App → /api/generate-poem → Vite Proxy → dev-server (localhost:3001) → llama.cpp (localhost:8080)
 ```
 
-本番デプロイ時は従来通りCloudflare Worker経由でGemini APIを使用します。
+本番デプロイ時はCloudflare Worker経由でGemini APIを使用します。
 
 ### ビルド
 
