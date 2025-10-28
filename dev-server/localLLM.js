@@ -333,6 +333,9 @@ app.post('/api/generate-poem', async (req, res) => {
       title = parsed.title || '';
       poem = parsed.poem || '';
 
+      // エスケープされた改行文字を実際の改行に変換
+      poem = poem.replace(/\\n/g, '\n');
+
       if (!title || !poem) {
         throw new Error('titleまたはpoemが見つかりません');
       }
