@@ -18,11 +18,11 @@ const __dirname = path.dirname(__filename);
 
 // 設定
 const LLAMACPP_SERVER_URL = process.env.LLAMACPP_SERVER_URL || 'http://localhost:8080/v1/chat/completions';
-const GOOGLE_AI_API_KEY = process.env.GOOGLE_AI_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const GEMINI_MODEL = 'google/gemini-2.5-flash-preview-09-2025';
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-const TARGET_PROMPT_COUNT = 112; // 1000組達成目標
+const TARGET_PROMPT_COUNT = 112; // 1000組達成目標（テスト: 5）
 const RESPONSES_PER_PROMPT = 8; // 1プロンプトあたりの生成数
 const COOLING_TIME_MS = 10000; // GPU冷却時間（10秒）
 const SAVE_INTERVAL = 10; // 10プロンプトごとに保存
@@ -248,8 +248,8 @@ function sleep(ms) {
  * @returns {Promise<string>} - "A" or "B"
  */
 async function compareWithGemini(prompt, responseA, responseB) {
-  if (!GOOGLE_AI_API_KEY) {
-    throw new Error('GOOGLE_AI_API_KEY is not set in .env file');
+  if (!OPENROUTER_API_KEY) {
+    throw new Error('OPENROUTER_API_KEY is not set in .env file');
   }
 
   const comparisonPrompt = `以下は同じプロンプトに対する2つの不動産広告です。どちらが優れているか、必ず「A」または「B」のどちらか一方を選んでください。
@@ -275,7 +275,7 @@ JSON形式: {"winner": "A", "reason": "理由"}`;
   const response = await fetch(OPENROUTER_URL, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${GOOGLE_AI_API_KEY}`,
+      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
       'HTTP-Referer': 'https://github.com/yourusername/mansion_poem',
       'X-Title': 'DPO Dataset Generator - Pairwise Comparison',
