@@ -1,10 +1,10 @@
 /**
- * DPO用データセット生成スクリプト
+ * DPO用応答収集スクリプト
  *
  * SFT済みモデル（gpt-oss-20b-mansion-poem-20epoch-mxfp4.gguf）から
- * ペアワイズ比較によるDPO (Direct Preference Optimization) データセットを生成
+ * 複数の応答を生成し、ルールベースフィルタリングして保存
  *
- * 出力: data/dpo/dpo_dataset_gpt-oss-20b.jsonl
+ * 出力: data/dpo/raw_responses.jsonl
  * エラーログ: data/dpo/errors.jsonl
  */
 
@@ -18,9 +18,6 @@ const __dirname = path.dirname(__filename);
 
 // 設定
 const LLAMACPP_SERVER_URL = process.env.LLAMACPP_SERVER_URL || 'http://localhost:8080/v1/chat/completions';
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const GEMINI_MODEL = 'google/gemini-2.5-flash-preview-09-2025';
-const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 const TARGET_PROMPT_COUNT = 5; // テスト用（本番: 112）
 const RESPONSES_PER_PROMPT = 8; // 1プロンプトあたりの生成数
@@ -28,7 +25,7 @@ const COOLING_TIME_MS = 10000; // GPU冷却時間（10秒）
 const SAVE_INTERVAL = 10; // 10プロンプトごとに保存
 
 const OUTPUT_DIR = path.join(__dirname, '../data/dpo');
-const OUTPUT_FILE = path.join(OUTPUT_DIR, 'dpo_dataset_gpt-oss-20b.jsonl');
+const OUTPUT_FILE = path.join(OUTPUT_DIR, 'raw_responses.jsonl');
 const ERROR_LOG_FILE = path.join(OUTPUT_DIR, 'errors.jsonl');
 
 // 出力ディレクトリ作成
@@ -54,9 +51,8 @@ const SYSTEM_PROMPT = fs.readFileSync(
 const stats = {
   totalPrompts: 0,
   successPrompts: 0,
-  skippedPrompts: 0,
-  totalDPOPairs: 0,
-  totalGeminiCalls: 0,
+  totalResponses: 0,
+  passedResponses: 0,
   startTime: Date.now(),
 };
 
@@ -210,7 +206,7 @@ function evaluateByRules(rawResponse) {
     '静謐': (poem.match(/静謐/g) || []).length,
     '洗練': (poem.match(/洗練/g) || []).length,
     '佇まい': (poem.match(/佇まい/g) || []).length,
-    '静寂': (poem.match(/静寂/g) || []).length,
+    '研ぎ澄ま': (poem.match(/研ぎ澄ま/g) || []).length,
   };
 
   for (const [word, count] of Object.entries(wordCounts)) {
@@ -230,7 +226,128 @@ function evaluateByRules(rawResponse) {
     return { passed: false, reason: `文字数超過（${poem.length}文字、300文字以上）`, poem };
   }
 
-  return { passed: true, poem, title: parsed.title };
+  // Step 4: 品質スコアリング（100点満点）
+  let qualityScore = 100;
+  const scoreDetails = [];
+
+  // 1. 抽象語の過密度チェック（-15点×出現回数）
+  const abstractWords = {
+    '哲学': 0,
+    '美学': 0,
+    '思想': 0,
+    '佇まい': 0,
+    '刻': 0, // 「刻」と「刻（とき）」を合計
+    '躍動': 0,
+    '風雅': 0
+  };
+
+  // 抽象語をカウント（「刻」は「刻（とき）」も含む）
+  abstractWords['哲学'] = (poem.match(/哲学/g) || []).length;
+  abstractWords['美学'] = (poem.match(/美学/g) || []).length;
+  abstractWords['思想'] = (poem.match(/思想/g) || []).length;
+  abstractWords['佇まい'] = (poem.match(/佇まい/g) || []).length;
+  abstractWords['刻'] = (poem.match(/刻（とき）|刻(?!（とき）)/g) || []).length;
+  abstractWords['躍動'] = (poem.match(/躍動/g) || []).length;
+  abstractWords['風雅'] = (poem.match(/風雅/g) || []).length;
+
+  const abstractCount = Object.values(abstractWords).reduce((a, b) => a + b, 0);
+
+  if (abstractCount > 0) {
+    const penalty = abstractCount * 15;
+    qualityScore -= penalty;
+    scoreDetails.push(`抽象語過多(-${penalty}点, ${abstractCount}個)`);
+  }
+
+  // 2. 同一語彙の過度な繰り返し（-20点）
+  const commonWords = ['場所', '都市', '住まい', '空間'];
+  for (const word of commonWords) {
+    const count = (poem.match(new RegExp(word, 'g')) || []).length;
+    if (count >= 2) {
+      qualityScore -= 20;
+      scoreDetails.push(`語彙繰り返し(-20点, ${word}×${count})`);
+    }
+  }
+
+  // 3. 具体的自然描写の有無（+20点）
+  const natureWords = ['光', '緑', '緑陰', '水', '風', '空', '四季', '季節', '樹', '雲', '大地', '山'];
+  const hasNature = natureWords.some(word => poem.includes(word));
+  if (hasNature) {
+    qualityScore += 20;
+    scoreDetails.push('自然描写(+20点)');
+  }
+
+  // 4. 感情語の有無（+15点）
+  const emotionWords = ['安らぎ', '満たされ', '優しさ', '安堵', '充足', '喜び', '心地'];
+  const hasEmotion = emotionWords.some(word => poem.includes(word));
+  if (hasEmotion) {
+    qualityScore += 15;
+    scoreDetails.push('感情語(+15点)');
+  }
+
+  // 5. 段落構造（-20点：1段落のみ＆150文字以上）
+  const paragraphs = poem.split('\n\n').filter(p => p.trim());
+  if (paragraphs.length === 1 && poem.length >= 150) {
+    qualityScore -= 20;
+    scoreDetails.push('段落構造不良(-20点)');
+  }
+
+  // 6. 文長の多様性（+10点：標準偏差が10以上）
+  const sentences = poem.split('。').filter(s => s.trim());
+  if (sentences.length > 1) {
+    const lengths = sentences.map(s => s.trim().length);
+    const mean = lengths.reduce((a, b) => a + b, 0) / lengths.length;
+    const variance = lengths.reduce((sum, len) => sum + Math.pow(len - mean, 2), 0) / lengths.length;
+    const stdDev = Math.sqrt(variance);
+
+    if (stdDev >= 10) {
+      qualityScore += 10;
+      scoreDetails.push('文長多様性(+10点)');
+    }
+  }
+
+  // 7. 体言止めの過度な使用（-10点：2回以上）
+  const taiGenPatterns = [
+    /として。/g,
+    /のため。/g,
+    /の場所。/g,
+    /の領域。/g,
+    /の刻。/g,
+    /のこと。/g
+  ];
+  let taiGenCount = 0;
+  for (const pattern of taiGenPatterns) {
+    taiGenCount += (poem.match(pattern) || []).length;
+  }
+  if (taiGenCount >= 2) {
+    qualityScore -= 10;
+    scoreDetails.push(`体言止め過多(-10点, ${taiGenCount}回)`);
+  }
+
+  // 8. 「哲学」の過度な使用（-25点：2回以上）
+  const philosophyCount = (poem.match(/哲学/g) || []).length;
+  if (philosophyCount >= 2) {
+    qualityScore -= 25;
+    scoreDetails.push(`哲学過多(-25点, ${philosophyCount}回)`);
+  }
+
+  // 9. 短文の戦略的使用（+10点：15文字以下の文が1つ以上）
+  const hasShortSentence = sentences.some(s => s.trim().length <= 15 && s.trim().length > 0);
+  if (hasShortSentence) {
+    qualityScore += 10;
+    scoreDetails.push('短文使用(+10点)');
+  }
+
+  // 品質スコア判定（閾値: 80点）
+  if (qualityScore < 80) {
+    return {
+      passed: false,
+      reason: `品質スコア不足（${qualityScore}点、80点未満）: ${scoreDetails.join(', ')}`,
+      poem,
+      quality_score: qualityScore
+    };
+  }
+
+  return { passed: true, poem, title: parsed.title, quality_score: qualityScore };
 }
 
 /**
@@ -241,235 +358,11 @@ function sleep(ms) {
 }
 
 /**
- * Geminiペアワイズ比較
- *
- * @param {string} prompt - ユーザープロンプト
- * @param {string} responseA - 応答A（poem）
- * @param {string} responseB - 応答B（poem）
- * @returns {Promise<string>} - "A" or "B"
- */
-async function compareWithGemini(prompt, responseA, responseB) {
-  if (!OPENROUTER_API_KEY) {
-    throw new Error('OPENROUTER_API_KEY is not set in .env file');
-  }
-
-  const comparisonPrompt = `以下は同じプロンプトに対する2つの不動産広告です。どちらが優れているか判定してください。
-
-【評価基準】
-1. 物語としての統合性（要素の羅列ではなく流れがある）
-2. 表現の豊かさと自然さ
-3. 繰り返しの少なさ
-4. 読み手を引き込む魅力
-
-【プロンプト】
-${prompt}
-
-【応答A】
-${responseA}
-
-【応答B】
-${responseB}
-
-**重要**: 必ず以下のJSON形式のみで回答してください。他の説明や表は不要です。
-{"winner": "A", "reason": "簡潔な理由"}
-または
-{"winner": "B", "reason": "簡潔な理由"}`;
-
-  const response = await fetch(OPENROUTER_URL, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://github.com/yourusername/mansion_poem',
-      'X-Title': 'DPO Dataset Generator - Pairwise Comparison',
-    },
-    body: JSON.stringify({
-      model: GEMINI_MODEL,
-      messages: [
-        { role: 'user', content: comparisonPrompt }
-      ],
-      temperature: 0.3,
-      max_tokens: 500,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
-  }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-
-  if (!content) {
-    throw new Error('Gemini応答にcontentが含まれていません');
-  }
-
-  // JSON抽出
-  const jsonMatch = content.match(/\{[\s\S]*?"winner"[\s\S]*?\}/);
-  if (jsonMatch) {
-    try {
-      const result = JSON.parse(jsonMatch[0]);
-      if (result.winner === 'A' || result.winner === 'B') {
-        return result.winner;
-      }
-    } catch (e) {
-      // JSON パース失敗、フォールバックへ
-    }
-  }
-
-  // フォールバック: テキストから勝者を推測
-  // パターン1: "winner": "A" または "winner": "B"
-  const winnerMatch = content.match(/"winner"\s*:\s*"([AB])"/);
-  if (winnerMatch) {
-    return winnerMatch[1];
-  }
-
-  // パターン2: 応答Aが優れている / 応答Bが優れている
-  if (/応答\s*A|回答\s*A/i.test(content) && /優れて|良い|高い/i.test(content)) {
-    return 'A';
-  }
-  if (/応答\s*B|回答\s*B/i.test(content) && /優れて|良い|高い/i.test(content)) {
-    return 'B';
-  }
-
-  // パターン3: 最後の手段 - Aまたはを含む最初の文
-  const firstLineWithA = content.split('\n').find(line => /^A|「A」|"A"/i.test(line));
-  const firstLineWithB = content.split('\n').find(line => /^B|「B」|"B"/i.test(line));
-
-  if (firstLineWithB && !firstLineWithA) {
-    return 'B';
-  }
-  if (firstLineWithA && !firstLineWithB) {
-    return 'A';
-  }
-
-  // それでも抽出できない場合はランダム（最終手段）
-  console.warn(`⚠️  Gemini応答から勝者を抽出できませんでした。ランダムに選択します。`);
-  return Math.random() < 0.5 ? 'A' : 'B';
-}
-
-/**
- * 総当たりペアワイズ比較とランキング構築
- *
- * @param {string} prompt - ユーザープロンプト
- * @param {Array} passedResponses - ルール通過応答 [{poem, title}, ...]
- * @returns {Promise<Array>} - ランキング済み応答 [{poem, title, wins, losses, winRate}, ...]
- */
-async function buildRankingByPairwise(prompt, passedResponses) {
-  const n = passedResponses.length;
-
-  if (n < 2) {
-    // 2個未満の場合はランキング不要
-    return passedResponses.map(resp => ({
-      ...resp,
-      wins: 0,
-      losses: 0,
-      winRate: 0
-    }));
-  }
-
-  // 勝敗カウント初期化
-  const winCounts = new Array(n).fill(0);
-  const lossCounts = new Array(n).fill(0);
-
-  // 総当たり比較（nC2ペア）
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      console.log(`  [Gemini比較] ${i+1} vs ${j+1}`);
-
-      const winner = await compareWithGemini(
-        prompt,
-        passedResponses[i].poem,
-        passedResponses[j].poem
-      );
-
-      stats.totalGeminiCalls++;
-
-      if (winner === 'A') {
-        winCounts[i]++;
-        lossCounts[j]++;
-      } else {
-        winCounts[j]++;
-        lossCounts[i]++;
-      }
-
-      // Rate limit対策（1秒待機）
-      await sleep(1000);
-    }
-  }
-
-  // ランキング構築
-  const ranked = passedResponses.map((resp, index) => ({
-    ...resp,
-    wins: winCounts[index],
-    losses: lossCounts[index],
-    winRate: winCounts[index] / (winCounts[index] + lossCounts[index])
-  }));
-
-  // 勝率でソート（降順）
-  ranked.sort((a, b) => b.winRate - a.winRate);
-
-  return ranked;
-}
-
-/**
- * DPO組作成
- *
- * ランキング上位のみをChosenとして使用
- * - 6個以上通過: トップ3をChosen
- * - 5個以下通過: トップ2をChosen
- * - 残りは全てRejected
- *
- * @param {string} prompt - ユーザープロンプト
- * @param {Array} ranked - ランキング済み応答
- * @param {Array} violations - ルール違反応答 [{poem, reason}, ...]
- * @returns {Array} - DPO組 [{prompt, chosen, rejected}, ...]
- */
-function createDPOPairs(prompt, ranked, violations) {
-  const pairs = [];
-
-  if (ranked.length === 0) {
-    return pairs;
-  }
-
-  // 通過数に応じてChosen候補を決定
-  const chosenCount = ranked.length >= 6 ? 3 : 2;
-  const chosenCandidates = ranked.slice(0, Math.min(chosenCount, ranked.length));
-  const rejectedCandidates = ranked.slice(chosenCandidates.length);
-
-  // パターン1: Chosen × Rejected（全組み合わせ）
-  for (const chosen of chosenCandidates) {
-    for (const rejected of rejectedCandidates) {
-      pairs.push({
-        prompt,
-        chosen: chosen.poem,
-        rejected: rejected.poem
-      });
-    }
-  }
-
-  // パターン2: Chosen × ルール違反（全組み合わせ）
-  if (violations.length > 0) {
-    for (const chosen of chosenCandidates) {
-      for (const violation of violations) {
-        pairs.push({
-          prompt,
-          chosen: chosen.poem,
-          rejected: violation.poem
-        });
-      }
-    }
-  }
-
-  return pairs;
-}
-
-/**
  * エラーログ保存
  */
-function saveErrorLog(prompt, responses) {
+function saveErrorLog(promptId, prompt, responses) {
   const errorLog = {
+    prompt_id: promptId,
     prompt,
     timestamp: new Date().toISOString(),
     responses
@@ -479,12 +372,16 @@ function saveErrorLog(prompt, responses) {
 }
 
 /**
- * DPO組を保存
+ * 応答グループを保存
  */
-function saveDPOPairs(pairs) {
-  for (const pair of pairs) {
-    fs.appendFileSync(OUTPUT_FILE, JSON.stringify(pair) + '\n', 'utf-8');
-  }
+function saveResponseGroup(promptId, prompt, responses) {
+  const responseGroup = {
+    prompt_id: promptId,
+    prompt,
+    responses
+  };
+
+  fs.appendFileSync(OUTPUT_FILE, JSON.stringify(responseGroup) + '\n', 'utf-8');
 }
 
 /**
@@ -497,10 +394,10 @@ function printStats() {
   console.log('\n========== 統計情報 ==========');
   console.log(`総プロンプト数: ${stats.totalPrompts}`);
   console.log(`成功プロンプト数: ${stats.successPrompts}`);
-  console.log(`スキッププロンプト数: ${stats.skippedPrompts}`);
-  console.log(`総DPO組数: ${stats.totalDPOPairs}`);
-  console.log(`総Gemini API呼び出し数: ${stats.totalGeminiCalls}`);
-  console.log(`平均DPO組/プロンプト: ${(stats.totalDPOPairs / stats.successPrompts).toFixed(1)}`);
+  console.log(`総応答数: ${stats.totalResponses}`);
+  console.log(`通過応答数: ${stats.passedResponses}`);
+  console.log(`通過率: ${((stats.passedResponses / stats.totalResponses) * 100).toFixed(1)}%`);
+  console.log(`平均通過数/プロンプト: ${(stats.passedResponses / stats.successPrompts).toFixed(1)}`);
   console.log(`経過時間: ${elapsedMin.toFixed(1)}分 (${elapsedSec.toFixed(0)}秒)`);
   console.log('==============================\n');
 }
@@ -509,7 +406,7 @@ function printStats() {
  * メイン処理
  */
 async function main() {
-  console.log('========== DPOデータセット生成開始 ==========');
+  console.log('========== 応答収集開始 ==========');
   console.log(`目標プロンプト数: ${TARGET_PROMPT_COUNT}`);
   console.log(`1プロンプトあたり生成数: ${RESPONSES_PER_PROMPT}`);
   console.log(`冷却時間: ${COOLING_TIME_MS}ms`);
@@ -519,6 +416,7 @@ async function main() {
 
   for (let promptIndex = 0; promptIndex < TARGET_PROMPT_COUNT; promptIndex++) {
     stats.totalPrompts++;
+    const promptId = `prompt_${promptIndex + 1}`;
     console.log(`\n[${promptIndex + 1}/${TARGET_PROMPT_COUNT}] プロンプト生成中...`);
 
     // プロンプト準備
@@ -534,6 +432,7 @@ async function main() {
         console.log(`  生成 ${i + 1}/${RESPONSES_PER_PROMPT}...`);
         const response = await callLlamaCpp(prompt);
         rawResponses.push(response);
+        stats.totalResponses++;
 
         // 冷却時間（最後の生成後は不要）
         if (i < RESPONSES_PER_PROMPT - 1) {
@@ -542,18 +441,21 @@ async function main() {
       } catch (error) {
         console.error(`  ✗ 生成失敗: ${error.message}`);
         rawResponses.push({ error: error.message });
+        stats.totalResponses++;
       }
     }
 
     // JSONパース＆ルールベース評価
     console.log(`\n[ルールベース評価] ${rawResponses.length}個評価中...`);
-    const passedResponses = [];
-    const violations = [];
-    const parseFailures = [];
+    const responses = [];
 
     for (let i = 0; i < rawResponses.length; i++) {
       if (rawResponses[i].error) {
-        parseFailures.push({ error: rawResponses[i].error });
+        responses.push({
+          response_id: i + 1,
+          passed: false,
+          error: rawResponses[i].error
+        });
         console.log(`  ${i + 1}. ✗ 生成エラー`);
         continue;
       }
@@ -561,50 +463,33 @@ async function main() {
       const result = evaluateByRules(rawResponses[i]);
 
       if (result.passed) {
-        passedResponses.push({ poem: result.poem, title: result.title });
-        console.log(`  ${i + 1}. ✓ 通過 (${result.poem.length}文字)`);
+        responses.push({
+          response_id: i + 1,
+          passed: true,
+          poem: result.poem,
+          title: result.title,
+          quality_score: result.quality_score
+        });
+        stats.passedResponses++;
+        console.log(`  ${i + 1}. ✓ 通過 (${result.poem.length}文字, スコア${result.quality_score}点)`);
       } else {
-        if (result.isParseFailed) {
-          parseFailures.push({ error: result.reason });
-          console.log(`  ${i + 1}. ✗ ${result.reason}`);
-        } else {
-          violations.push({ poem: result.poem, reason: result.reason });
-          console.log(`  ${i + 1}. ✗ ${result.reason}`);
-        }
+        responses.push({
+          response_id: i + 1,
+          passed: false,
+          reason: result.reason,
+          poem: result.poem || null,
+          quality_score: result.quality_score || null
+        });
+        console.log(`  ${i + 1}. ✗ ${result.reason}`);
       }
     }
 
-    console.log(`\n結果: 通過=${passedResponses.length}, 違反=${violations.length}, パース失敗=${parseFailures.length}`);
+    const passedCount = responses.filter(r => r.passed).length;
+    const failedCount = responses.length - passedCount;
+    console.log(`\n結果: 通過=${passedCount}, 不合格=${failedCount}`);
 
-    // 全失敗の場合はスキップ
-    if (passedResponses.length === 0) {
-      console.log('⚠️  全失敗のためスキップ');
-      stats.skippedPrompts++;
-
-      saveErrorLog(prompt, [
-        ...violations.map(v => ({ poem: v.poem, error: v.reason })),
-        ...parseFailures
-      ]);
-
-      continue;
-    }
-
-    // Geminiペアワイズ比較＆ランキング構築
-    console.log(`\n[Geminiペアワイズ比較] ${passedResponses.length}個の総当たり比較...`);
-    const ranked = await buildRankingByPairwise(prompt, passedResponses);
-
-    console.log('\nランキング:');
-    ranked.forEach((resp, i) => {
-      console.log(`  ${i + 1}位: 勝率${(resp.winRate * 100).toFixed(0)}% (${resp.wins}勝${resp.losses}敗)`);
-    });
-
-    // DPO組作成
-    const dpoPairs = createDPOPairs(prompt, ranked, violations);
-    console.log(`\n[DPO組作成] ${dpoPairs.length}組作成`);
-
-    // 保存
-    saveDPOPairs(dpoPairs);
-    stats.totalDPOPairs += dpoPairs.length;
+    // 応答グループを保存
+    saveResponseGroup(promptId, prompt, responses);
     stats.successPrompts++;
 
     // 定期的に統計表示
@@ -615,7 +500,7 @@ async function main() {
 
   // 最終統計
   printStats();
-  console.log('✓ DPOデータセット生成完了');
+  console.log('✓ 応答収集完了');
 }
 
 // 実行
