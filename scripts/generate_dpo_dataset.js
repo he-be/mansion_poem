@@ -22,7 +22,7 @@ const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const GEMINI_MODEL = 'google/gemini-2.5-flash-preview-09-2025';
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-const TARGET_PROMPT_COUNT = 112; // 1000組達成目標（テスト: 5）
+const TARGET_PROMPT_COUNT = 5; // テスト用（本番: 112）
 const RESPONSES_PER_PROMPT = 8; // 1プロンプトあたりの生成数
 const COOLING_TIME_MS = 10000; // GPU冷却時間（10秒）
 const SAVE_INTERVAL = 10; // 10プロンプトごとに保存
@@ -252,10 +252,10 @@ async function compareWithGemini(prompt, responseA, responseB) {
     throw new Error('OPENROUTER_API_KEY is not set in .env file');
   }
 
-  const comparisonPrompt = `以下は同じプロンプトに対する2つの不動産広告です。どちらが優れているか、必ず「A」または「B」のどちらか一方を選んでください。
+  const comparisonPrompt = `以下は同じプロンプトに対する2つの不動産広告です。どちらが優れているか判定してください。
 
 【評価基準】
-1. 物語としての統合性（単なる要素の羅列ではなく、流れがある）
+1. 物語としての統合性（要素の羅列ではなく流れがある）
 2. 表現の豊かさと自然さ
 3. 繰り返しの少なさ
 4. 読み手を引き込む魅力
@@ -269,8 +269,10 @@ ${responseA}
 【応答B】
 ${responseB}
 
-必ず「A」または「B」で回答し、簡潔な理由を述べてください。
-JSON形式: {"winner": "A", "reason": "理由"}`;
+**重要**: 必ず以下のJSON形式のみで回答してください。他の説明や表は不要です。
+{"winner": "A", "reason": "簡潔な理由"}
+または
+{"winner": "B", "reason": "簡潔な理由"}`;
 
   const response = await fetch(OPENROUTER_URL, {
     method: 'POST',
@@ -303,19 +305,47 @@ JSON形式: {"winner": "A", "reason": "理由"}`;
   }
 
   // JSON抽出
-  const jsonMatch = content.match(/\{[\s\S]*"winner"[\s\S]*\}/);
-  if (!jsonMatch) {
-    // フォールバック: AまたはBを直接探す
-    if (content.includes('"A"') || content.includes('「A」')) {
-      return 'A';
-    } else if (content.includes('"B"') || content.includes('「B」')) {
-      return 'B';
+  const jsonMatch = content.match(/\{[\s\S]*?"winner"[\s\S]*?\}/);
+  if (jsonMatch) {
+    try {
+      const result = JSON.parse(jsonMatch[0]);
+      if (result.winner === 'A' || result.winner === 'B') {
+        return result.winner;
+      }
+    } catch (e) {
+      // JSON パース失敗、フォールバックへ
     }
-    throw new Error(`Gemini応答からwinnerを抽出できません: ${content}`);
   }
 
-  const result = JSON.parse(jsonMatch[0]);
-  return result.winner;
+  // フォールバック: テキストから勝者を推測
+  // パターン1: "winner": "A" または "winner": "B"
+  const winnerMatch = content.match(/"winner"\s*:\s*"([AB])"/);
+  if (winnerMatch) {
+    return winnerMatch[1];
+  }
+
+  // パターン2: 応答Aが優れている / 応答Bが優れている
+  if (/応答\s*A|回答\s*A/i.test(content) && /優れて|良い|高い/i.test(content)) {
+    return 'A';
+  }
+  if (/応答\s*B|回答\s*B/i.test(content) && /優れて|良い|高い/i.test(content)) {
+    return 'B';
+  }
+
+  // パターン3: 最後の手段 - Aまたはを含む最初の文
+  const firstLineWithA = content.split('\n').find(line => /^A|「A」|"A"/i.test(line));
+  const firstLineWithB = content.split('\n').find(line => /^B|「B」|"B"/i.test(line));
+
+  if (firstLineWithB && !firstLineWithA) {
+    return 'B';
+  }
+  if (firstLineWithA && !firstLineWithB) {
+    return 'A';
+  }
+
+  // それでも抽出できない場合はランダム（最終手段）
+  console.warn(`⚠️  Gemini応答から勝者を抽出できませんでした。ランダムに選択します。`);
+  return Math.random() < 0.5 ? 'A' : 'B';
 }
 
 /**
@@ -385,6 +415,11 @@ async function buildRankingByPairwise(prompt, passedResponses) {
 /**
  * DPO組作成
  *
+ * ランキング上位のみをChosenとして使用
+ * - 6個以上通過: トップ3をChosen
+ * - 5個以下通過: トップ2をChosen
+ * - 残りは全てRejected
+ *
  * @param {string} prompt - ユーザープロンプト
  * @param {Array} ranked - ランキング済み応答
  * @param {Array} violations - ルール違反応答 [{poem, reason}, ...]
@@ -393,53 +428,33 @@ async function buildRankingByPairwise(prompt, passedResponses) {
 function createDPOPairs(prompt, ranked, violations) {
   const pairs = [];
 
-  // パターン1: 上位 vs 下位（明確な品質差）
-  if (ranked.length >= 4) {
-    const top2 = ranked.slice(0, 2);
-    const bottom2 = ranked.slice(-2).reverse(); // 下位2個を逆順
+  if (ranked.length === 0) {
+    return pairs;
+  }
 
-    for (const topResp of top2) {
-      for (const bottomResp of bottom2) {
-        pairs.push({
-          prompt,
-          chosen: topResp.poem,
-          rejected: bottomResp.poem
-        });
-      }
-    }
-  } else if (ranked.length >= 2) {
-    // 2-3個の場合: 上位1個 vs 下位全て
-    const top = ranked[0];
-    for (let i = 1; i < ranked.length; i++) {
+  // 通過数に応じてChosen候補を決定
+  const chosenCount = ranked.length >= 6 ? 3 : 2;
+  const chosenCandidates = ranked.slice(0, Math.min(chosenCount, ranked.length));
+  const rejectedCandidates = ranked.slice(chosenCandidates.length);
+
+  // パターン1: Chosen × Rejected（全組み合わせ）
+  for (const chosen of chosenCandidates) {
+    for (const rejected of rejectedCandidates) {
       pairs.push({
         prompt,
-        chosen: top.poem,
-        rejected: ranked[i].poem
+        chosen: chosen.poem,
+        rejected: rejected.poem
       });
     }
   }
 
-  // パターン2: 中程度の差（隣接ランク）
-  if (ranked.length >= 3) {
-    for (let i = 0; i < ranked.length - 1; i++) {
-      pairs.push({
-        prompt,
-        chosen: ranked[i].poem,
-        rejected: ranked[i + 1].poem
-      });
-    }
-  }
-
-  // パターン3: 上位 vs ルール違反
-  if (violations.length > 0 && ranked.length > 0) {
-    const topResponses = ranked.slice(0, Math.min(2, ranked.length));
-    const violationsToUse = violations.slice(0, Math.min(3, violations.length));
-
-    for (const topResp of topResponses) {
-      for (const violation of violationsToUse) {
+  // パターン2: Chosen × ルール違反（全組み合わせ）
+  if (violations.length > 0) {
+    for (const chosen of chosenCandidates) {
+      for (const violation of violations) {
         pairs.push({
           prompt,
-          chosen: topResp.poem,
+          chosen: chosen.poem,
           rejected: violation.poem
         });
       }
