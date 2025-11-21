@@ -14,15 +14,44 @@ import Database from 'better-sqlite3';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+import os from 'os';
+
+// ... (existing imports)
+
 const app = express();
 const PORT = 3001;
 
 app.use(cors());
 app.use(express.json());
 
-// llama.cpp サーバー設定
-const LLAMACPP_SERVER_URL = process.env.LLAMACPP_SERVER_URL || 'http://localhost:8080/v1/chat/completions';
+// 環境設定
 const MODEL_NAME = 'gpt-oss-20b-mansion-poem-20epoch-mxfp4.gguf';
+
+// 実行環境の判定と設定
+function getEnvConfig() {
+  const env = process.env.LLM_ENV || (os.platform() === 'darwin' ? 'mac' : 'cuda');
+
+  const configs = {
+    mac: {
+      name: 'MacBook (Metal/MPS)',
+      serverUrl: process.env.LLAMACPP_SERVER_URL || 'http://localhost:8080/v1/chat/completions',
+      launchCommand: `llama.cpp/llama-server -m ${MODEL_NAME} \\\n     --jinja -ngl 99 --threads -1 --ctx-size 16384 \\\n     --temp 1.0 --top-p 1.0 --top-k 0 \\\n     --host 0.0.0.0 --port 8080`
+    },
+    cuda: {
+      name: 'CUDA (Linux/Windows)',
+      serverUrl: process.env.LLAMACPP_SERVER_URL || 'http://localhost:8080/v1/chat/completions',
+      launchCommand: `llama.cpp/llama-server -m ${MODEL_NAME} \\\n     --jinja -ngl 99 --threads -1 --ctx-size 16384 \\\n     --temp 1.0 --top-p 1.0 --top-k 0 \\\n     --host 0.0.0.0 -dev CUDA1 --port 8080`
+    }
+  };
+
+  return {
+    env,
+    ...configs[env] || configs.cuda // デフォルトはCUDA（安全側）
+  };
+}
+
+const config = getEnvConfig();
+const LLAMACPP_SERVER_URL = config.serverUrl;
 
 // データファイルの読み込み
 const catchphrasesData = JSON.parse(
@@ -259,13 +288,8 @@ async function sendLlamaCppRequest(userPrompt) {
           }
         }
       ],
-      tool_choice: {
-        type: 'function',
-        function: {
-          name: 'submit_poem_alchemy'
-        }
-      },
-      temperature: 1.0,
+      tool_choice: 'auto',
+      temperature: 0.6,
       top_p: 1.0,
       top_k: 0
     }),
@@ -388,6 +412,7 @@ app.get('/health', (_req, res) => {
 app.listen(PORT, () => {
   console.log(`\n🚀 llama.cpp Dev Server running on http://localhost:${PORT}`);
   console.log(`\n📋 Configuration:`);
+  console.log(`   Environment: ${config.name} (${process.env.LLM_ENV ? 'Manual Override' : 'Auto-detected'})`);
   console.log(`   Model: ${MODEL_NAME}`);
   console.log(`   Server URL: ${LLAMACPP_SERVER_URL}`);
 
@@ -398,8 +423,5 @@ app.listen(PORT, () => {
   console.log(`   Logs: ${logCount.count} records`);
 
   console.log(`\n💡 llama.cpp サーバーを起動してください:`);
-  console.log(`   llama.cpp/llama-server -m ${MODEL_NAME} \\`);
-  console.log(`     --jinja -ngl 99 --threads -1 --ctx-size 16384 \\`);
-  console.log(`     --temp 1.0 --top-p 1.0 --top-k 0 \\`);
-  console.log(`     --host 0.0.0.0 --port 8080\n`);
+  console.log(`   ${config.launchCommand}\n`);
 });
