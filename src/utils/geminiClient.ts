@@ -29,7 +29,7 @@ export async function generatePoemWithGemini(
 ): Promise<GeneratePoemResult> {
   // API呼び出し（タイムアウト30秒）
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  const timeoutId = setTimeout(() => controller.abort(), 90000);
 
   try {
     // Worker APIエンドポイントを呼び出し
