@@ -344,14 +344,33 @@ app.post('/api/generate-poem', async (req, res) => {
       throw new Error('レスポンスにcontentが含まれていません');
     }
 
-    // content をパース（JSONコードブロックに対応）
+    // content をパース（新モデルのチャネル形式と従来形式の両方に対応）
     let title = '';
     let poem = '';
 
     try {
-      // JSONコードブロックを抽出（```json ... ``` の形式に対応）
-      const jsonMatch = content.match(/```json\s*\n?([\s\S]*?)\n?```/);
-      const jsonText = jsonMatch ? jsonMatch[1] : content;
+      let jsonText = content;
+
+      // 新モデルの<|channel|>final_json_string形式に対応
+      // パターン1: <|channel|>final_json_string"}="""{json} (新モデル)
+      // パターン2: <|channel|>final_json_string<|message|>{json} (別の可能性)
+      const channelMatch1 = content.match(/<\|channel\|>final_json_string[^{]*?(\{[\s\S]*?\})\s*$/);
+      const channelMatch2 = content.match(/<\|channel\|>final_json_string[^<]*<\|message\|>([\s\S]*?)(?:<\|channel\||$)/);
+
+      if (channelMatch1) {
+        jsonText = channelMatch1[1].trim();
+        console.log('[llama.cpp] Extracted JSON from final_json_string channel (format 1)');
+      } else if (channelMatch2) {
+        jsonText = channelMatch2[1].trim();
+        console.log('[llama.cpp] Extracted JSON from final_json_string channel (format 2)');
+      } else {
+        // 従来形式: JSONコードブロックを抽出（```json ... ``` の形式）
+        const jsonMatch = content.match(/```json\s*\n?([\s\S]*?)\n?```/);
+        if (jsonMatch) {
+          jsonText = jsonMatch[1];
+          console.log('[llama.cpp] Extracted JSON from code block');
+        }
+      }
 
       const parsed = JSON.parse(jsonText);
       title = parsed.title || '';
