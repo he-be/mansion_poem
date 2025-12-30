@@ -40,7 +40,7 @@ coverage/
 venv*
 notebooks/
 datasets*
-data/
-debug_logs/
+/data/
+/debug_logs/
 docs/log_*.txt
 docs/plan_*.txt
