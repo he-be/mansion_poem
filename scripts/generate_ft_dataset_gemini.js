@@ -15,21 +15,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 設定
-const LLAMACPP_SERVER_URL = process.env.LLAMACPP_SERVER_URL || 'http://localhost:8080/v1/chat/completions';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-// const OPENROUTER_MODEL = 'google/gemini-2.5-flash-preview-09-2025';
-const OPENROUTER_MODEL = 'openrouter/polaris-alpha';
+const OPENROUTER_MODEL = 'google/gemini-2.5-flash-preview-09-2025';
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const SAMPLE_COUNT = 10; // 生成するサンプル数..
-
-const OUTPUT_FILE = path.join(__dirname, '../datasets/mansion_poem_ft_1112_model3.jsonl');
-const DEBUG_DIR = path.join(__dirname, '../debug_logs');
-
-// プロンプトファイル選択（環境変数USE_TOOL_PROMPT=true でツール定義版を使用）
-const USE_TOOL_PROMPT = process.env.USE_TOOL_PROMPT === 'true';
-const PROMPT_FILE = USE_TOOL_PROMPT
-  ? 'prompt_for_dataset_with_tools.txt'
-  : 'prompt_for_dataset.txt';
+const SAMPLE_COUNT = 2000; // 生成するサンプル数
+const OUTPUT_FILE = path.join(__dirname, '../datasets/mansion_poem_ft_gemini1.jsonl');
 
 // データ読み込み
 const cardsData = JSON.parse(
@@ -39,7 +29,7 @@ const catchphrasesData = JSON.parse(
   fs.readFileSync(path.join(__dirname, '../src/data/catchphrases.json'), 'utf-8')
 );
 const promptTemplate = fs.readFileSync(
-  path.join(__dirname, `../src/data/${PROMPT_FILE}`),
+  path.join(__dirname, '../src/data/prompt_for_dataset.txt'),
   'utf-8'
 );
 
@@ -132,8 +122,7 @@ async function callOpenRouter(developerPrompt, userPrompt) {
     throw new Error('OPENROUTER_API_KEY is not set in .env file');
   }
 
-  // const response = await fetch(OPENROUTER_URL, {
-  const response = await fetch(LLAMACPP_SERVER_URL, {
+  const response = await fetch(OPENROUTER_URL, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
@@ -148,7 +137,10 @@ async function callOpenRouter(developerPrompt, userPrompt) {
         { role: 'user', content: userPrompt }
       ],
       tools: TOOLS,
-      tool_choice: 'auto', // llama.cpp互換: 文字列形式
+      tool_choice: {
+        type: 'function',
+        function: { name: 'submit_poem_alchemy' }
+      },
       temperature: 1.0,
       max_tokens: 8192,
     }),
@@ -165,75 +157,12 @@ async function callOpenRouter(developerPrompt, userPrompt) {
 /**
  * Tool Callレスポンスからanalysisとfinalを取得
  */
-function parseResponse(response, sampleIndex) {
+function parseResponse(response) {
   // Tool Callsから取得
   const toolCalls = response.choices?.[0]?.message?.tool_calls;
 
   if (!toolCalls || toolCalls.length === 0) {
-    // tool_callsが無い場合は、reasoning_contentとcontentの両方を確認
-    const reasoningContent = response.choices?.[0]?.message?.reasoning_content || '';
-    const assistantMessage = response.choices?.[0]?.message?.content || '';
-
-    let analysisContent = '';
-    let finalContent = '';
-
-    // より厳密なJSON抽出（title, poemフィールドを持つオブジェクト）
-    const extractJSON = (text) => {
-      if (!text) return null;
-      // パターン1: {"title": "...", "poem": "..."}
-      const match1 = text.match(/\{\s*"title"\s*:\s*"([^"]+)"\s*,\s*"poem"\s*:\s*"([\s\S]+?)"\s*\}/);
-      if (match1) return match1[0];
-
-      // パターン2: より緩い抽出（改行やエスケープを含む）
-      const match2 = text.match(/\{[^}]*"title"[^}]*"poem"[^}]*\}/s);
-      if (match2) {
-        try {
-          // JSONとして有効か確認
-          JSON.parse(match2[0]);
-          return match2[0];
-        } catch (e) {
-          return null;
-        }
-      }
-
-      return null;
-    };
-
-    // まずcontentからJSONを探す
-    if (assistantMessage) {
-      finalContent = extractJSON(assistantMessage);
-    }
-
-    // なければreasoning_contentから探す
-    if (!finalContent && reasoningContent) {
-      finalContent = extractJSON(reasoningContent);
-    }
-
-    // analysisの取得（reasoning_contentを優先）
-    if (reasoningContent) {
-      analysisContent = reasoningContent;
-      // reasoning_content内にJSONがあれば除去（分析部分のみにする）
-      if (finalContent && reasoningContent.includes(finalContent)) {
-        analysisContent = reasoningContent.replace(finalContent, '').trim();
-      }
-    } else if (assistantMessage && finalContent) {
-      // reasoning_contentがない場合、contentから分析部分を抽出
-      analysisContent = assistantMessage.replace(finalContent, '').trim();
-    }
-
-    // JSONが見つからなかった場合のみエラー
-    if (!finalContent) {
-      // デバッグ: レスポンス全体を保存
-      if (!fs.existsSync(DEBUG_DIR)) {
-        fs.mkdirSync(DEBUG_DIR, { recursive: true });
-      }
-      const debugFile = path.join(DEBUG_DIR, `error_sample${sampleIndex}_${Date.now()}.json`);
-      fs.writeFileSync(debugFile, JSON.stringify(response, null, 2), 'utf-8');
-      console.error(`   📝 デバッグ情報を保存: ${debugFile}`);
-      throw new Error('No valid JSON found in response (checked both reasoning_content and content)');
-    }
-
-    return { analysisContent, finalContent };
+    throw new Error('No tool calls found in response');
   }
 
   const toolCall = toolCalls[0];
@@ -309,7 +238,6 @@ function buildHarmonySample(developerPrompt, userPrompt, analysisContent, finalC
 async function main() {
   console.log('🚀 ファインチューニングデータセット生成開始\n');
   console.log(`モデル: ${OPENROUTER_MODEL}`);
-  console.log(`プロンプト: ${PROMPT_FILE}${USE_TOOL_PROMPT ? ' (ツール定義版)' : ''}`);
   console.log(`サンプル数: ${SAMPLE_COUNT}`);
   console.log(`出力先: ${OUTPUT_FILE}\n`);
 
@@ -338,22 +266,7 @@ async function main() {
       const responseTime = Date.now() - startTime;
 
       // Tool Callレスポンスをパース
-      const { analysisContent, finalContent } = parseResponse(response, i + 1);
-
-      // デバッグ: 成功時のサマリーも保存
-      if (!fs.existsSync(DEBUG_DIR)) {
-        fs.mkdirSync(DEBUG_DIR, { recursive: true });
-      }
-      const summaryFile = path.join(DEBUG_DIR, `success_sample${i + 1}_${Date.now()}.json`);
-      const summary = {
-        sampleIndex: i + 1,
-        hasToolCalls: !!response.choices?.[0]?.message?.tool_calls,
-        hasContent: !!response.choices?.[0]?.message?.content,
-        analysisLength: analysisContent.length,
-        finalLength: finalContent.length,
-        responseTime,
-      };
-      fs.writeFileSync(summaryFile, JSON.stringify(summary, null, 2), 'utf-8');
+      const { analysisContent, finalContent } = parseResponse(response);
 
       // Harmony形式サンプル構築
       const sample = buildHarmonySample(
@@ -366,7 +279,7 @@ async function main() {
       // JSONLファイルに追記
       fs.appendFileSync(OUTPUT_FILE, JSON.stringify(sample, null, 0) + '\n', 'utf-8');
 
-      console.log(`   ✓ 完了 (${responseTime}ms) [tool_calls: ${summary.hasToolCalls ? '✓' : '✗'}]`);
+      console.log(`   ✓ 完了 (${responseTime}ms)`);
 
       // レート制限対策: 少し待機
       if (i < SAMPLE_COUNT - 1) {
@@ -375,21 +288,12 @@ async function main() {
 
     } catch (error) {
       console.error(`   ✗ エラー: ${error.message}`);
-
-      // エラーログも保存
-      if (!fs.existsSync(DEBUG_DIR)) {
-        fs.mkdirSync(DEBUG_DIR, { recursive: true });
-      }
-      const errorLogFile = path.join(DEBUG_DIR, `error_log_${Date.now()}.txt`);
-      fs.writeFileSync(errorLogFile, `Sample ${i + 1}\n${error.stack}\n`, 'utf-8');
-
       // エラーが発生しても継続
     }
   }
 
   console.log('\n✅ データセット生成完了');
   console.log(`📁 ファイル: ${OUTPUT_FILE}`);
-  console.log(`🔍 デバッグログ: ${DEBUG_DIR}`);
 
   // 統計情報
   const lines = fs.readFileSync(OUTPUT_FILE, 'utf-8').split('\n').filter(l => l.trim());
