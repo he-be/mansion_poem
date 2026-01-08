@@ -25,7 +25,7 @@ app.use(cors());
 app.use(express.json());
 
 // 環境設定
-const MODEL_NAME = 'gpt-oss-20b-mansion-poem-20epoch-mxfp4.gguf';
+const MODEL_NAME = 'gpt-oss-20b-mansion-poem';
 
 // 実行環境の判定と設定
 function getEnvConfig() {
@@ -34,12 +34,12 @@ function getEnvConfig() {
   const configs = {
     mac: {
       name: 'MacBook (Metal/MPS)',
-      serverUrl: process.env.LLAMACPP_SERVER_URL || 'http://localhost:8080/v1/chat/completions',
+      serverUrl: process.env.LLAMACPP_SERVER_URL || 'http://100.121.61.11:8080/v1/chat/completions',
       launchCommand: `llama.cpp/llama-server -m ${MODEL_NAME} \\\n     --jinja -ngl 99 --threads -1 --ctx-size 16384 \\\n     --temp 1.0 --top-p 1.0 --top-k 0 \\\n     --host 0.0.0.0 --port 8080`
     },
     cuda: {
       name: 'CUDA (Linux/Windows)',
-      serverUrl: process.env.LLAMACPP_SERVER_URL || 'http://localhost:8080/v1/chat/completions',
+      serverUrl: process.env.LLAMACPP_SERVER_URL || 'http://100.121.61.11:8080/v1/chat/completions',
       launchCommand: `llama.cpp/llama-server -m ${MODEL_NAME} \\\n     --jinja -ngl 99 --threads -1 --ctx-size 16384 \\\n     --temp 1.0 --top-p 1.0 --top-k 0 \\\n     --host 0.0.0.0 -dev CUDA1 --port 8080`
     }
   };
@@ -310,10 +310,14 @@ async function sendLlamaCppRequest(userPrompt) {
 app.post('/api/generate-poem', async (req, res) => {
   const startTime = Date.now();
   let userPrompt = '';
-  let reasoningText = '';
+  let fullReasoning = '';
+  let fullContent = '';
+
+  // バッファリング用
+  let responseBuffer = '';
 
   try {
-    const { selectedPairs } = req.body;
+    const { selectedPairs, stream } = req.body;
 
     if (!selectedPairs || !Array.isArray(selectedPairs)) {
       return res.status(400).json({ error: 'Invalid request: selectedPairs is required' });
@@ -322,103 +326,193 @@ app.post('/api/generate-poem', async (req, res) => {
     // プロンプト構築
     userPrompt = buildUserPrompt(selectedPairs);
 
-    console.log('[llama.cpp] Generating poem...');
+    console.log('[llama.cpp] Generating poem (Streaming)...');
 
-    // llama.cpp リクエスト送信
-    const data = await sendLlamaCppRequest(userPrompt);
+    // llama.cpp へストリーミングリクエスト送信
+    const llamaResponse = await fetch(LLAMACPP_SERVER_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userPrompt }
+        ],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'submit_poem_alchemy',
+              description: '分析（思考過程）と最終的なJSONを厳密に分離して提出する',
+              parameters: {
+                type: 'object',
+                properties: {
+                  analysis_text: { type: 'string' },
+                  final_json_string: { type: 'string' }
+                },
+                required: ['analysis_text', 'final_json_string']
+              }
+            }
+          }
+        ],
+        tool_choice: 'auto',
+        temperature: 0.6,
+        top_p: 1.0,
+        top_k: 0,
+        stream: true // 常にストリーミング有効化
+      }),
+    });
 
-    // レスポンス解析
-    const message = data.choices?.[0]?.message;
-    if (!message) {
-      console.error('[llama.cpp] No message in response:', data);
-      throw new Error('レスポンスにメッセージが含まれていません');
+    if (!llamaResponse.ok) {
+      const errorText = await llamaResponse.text();
+      console.error('[llama.cpp] API error:', errorText);
+      throw new Error(`llama.cpp API error: ${llamaResponse.status}`);
     }
 
-    // reasoning_content を取得（分析テキスト）
-    reasoningText = message.reasoning_content || '';
-
-    // content から直接JSONを取得
-    const content = message.content;
-    if (!content) {
-      console.error('[llama.cpp] No content in response:', message);
-      throw new Error('レスポンスにcontentが含まれていません');
+    const contentType = llamaResponse.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      const html = await llamaResponse.text();
+      console.error('[llama.cpp] Received HTML response:', html.substring(0, 500));
+      throw new Error(`llama.cpp returned HTML response (status ${llamaResponse.status})`);
     }
 
-    // content をパース（新モデルのチャネル形式と従来形式の両方に対応）
+    // クライアントへのレスポンスヘッダー設定（SSE）
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // Web Streams API (Node.js 18+)
+    const reader = llamaResponse.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      responseBuffer += chunk;
+
+      // クライアントへそのまま転送
+      res.write(chunk);
+
+      // サーバー側でログ用に解析するために行ごとに処理
+      // 注: ここで完全な解析をするのは複雑になるため、
+      // 簡易的に蓄積し、ストリーム終了後に全体をパースする戦略をとるが、
+      // バッファが切れたJSONをパースしないように注意が必要。
+      // ここでは詳細解析はせず、最後にresponseBuffer全体を処理する形にする。
+    }
+
+    res.end();
+
+    // --- ストリーム終了後の後処理（DBログ記録） ---
+
+    // responseBufferから全SSEイベントを抽出して結合
+    const lines = responseBuffer.split('\n');
+    for (const line of lines) {
+      if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') {
+        try {
+          const jsonStr = line.replace(/^data: /, '').trim();
+          if (!jsonStr) continue;
+
+          const data = JSON.parse(jsonStr);
+          const delta = data.choices?.[0]?.delta;
+
+          if (delta) {
+            if (delta.reasoning) fullReasoning += delta.reasoning;
+            if (delta.content) fullContent += delta.content;
+            // tool_callsの場合もcontentなどに含まれるか、別フィールド
+            if (delta.tool_calls) {
+              // tool_callsのストリーミングは複雑だが、ここではcontentに簡略化して扱うか、
+              // あるいは通常のcontentとして出てくるのを待つ。
+              // llama.cppのtool_callストリーミングの挙動に依存。
+              // 多くの場合contentに出るか、tool_calls配列で来る。
+              // いったんcontentとして扱う
+              // 実装確認したdemo出力では reasoning と content が出ていた。
+            }
+          }
+        } catch (e) {
+          // JSONパースエラーは無視（断片の可能性あり）
+        }
+      }
+    }
+
+    // 最終的なJSONの抽出（既存ロジック再利用）
     let title = '';
     let poem = '';
+    let isSuccessful = false;
+    let errorMsg = null;
 
     try {
-      let jsonText = content;
+      let jsonText = fullContent;
 
-      // 新モデルの<|channel|>final_json_string形式に対応
-      // パターン1: <|channel|>final_json_string"}="""{json} (新モデル)
-      // パターン2: <|channel|>final_json_string<|message|>{json} (別の可能性)
-      const channelMatch1 = content.match(/<\|channel\|>final_json_string[^{]*?(\{[\s\S]*?\})\s*$/);
-      const channelMatch2 = content.match(/<\|channel\|>final_json_string[^<]*<\|message\|>([\s\S]*?)(?:<\|channel\||$)/);
+      // パターンマッチング（既存ロジック）
+      const channelMatch1 = fullContent.match(/<\|channel\|>final_json_string[^{]*?(\{[\s\S]*?\})\s*$/);
+      const channelMatch2 = fullContent.match(/<\|channel\|>final_json_string[^<]*<\|message\|>([\s\S]*?)(?:<\|channel\||$)/);
+      const jsonMatch = fullContent.match(/```json\s*\n?([\s\S]*?)\n?```/);
+      const broadMatch = fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*?\})(?:\s*\)|;)*$/) || fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*?\})/);
 
       if (channelMatch1) {
         jsonText = channelMatch1[1].trim();
-        console.log('[llama.cpp] Extracted JSON from final_json_string channel (format 1)');
       } else if (channelMatch2) {
         jsonText = channelMatch2[1].trim();
-        console.log('[llama.cpp] Extracted JSON from final_json_string channel (format 2)');
-      } else {
-        // 従来形式: JSONコードブロックを抽出（```json ... ``` の形式）
-        const jsonMatch = content.match(/```json\s*\n?([\s\S]*?)\n?```/);
-        if (jsonMatch) {
-          jsonText = jsonMatch[1];
-          console.log('[llama.cpp] Extracted JSON from code block');
-        }
+      } else if (jsonMatch) {
+        jsonText = jsonMatch[1];
+      } else if (broadMatch) {
+        jsonText = broadMatch[1];
       }
 
-      const parsed = JSON.parse(jsonText);
-      title = parsed.title || '';
-      poem = parsed.poem || '';
+      // コメント削除 (// ...)
+      jsonText = jsonText.replace(/\/\/.*$/gm, '');
 
-      // エスケープされた改行文字を実際の改行に変換
-      poem = poem.replace(/\\n/g, '\n');
+      // JSONとしてパース試行
+      try {
+        const parsed = JSON.parse(jsonText);
+        title = parsed.title || '';
+        poem = parsed.poem || '';
+        poem = poem.replace(/\\n/g, '\n');
 
-      if (!title || !poem) {
-        throw new Error('titleまたはpoemが見つかりません');
+        if (title && poem) isSuccessful = true;
+      } catch (e) {
+        // パース失敗なら失敗として扱う
       }
-    } catch (parseError) {
-      console.error('[llama.cpp] JSON parse error:', parseError);
-      console.error('[llama.cpp] content:', content);
-      throw new Error('生成されたJSONの解析に失敗しました');
+
+    } catch (e) {
+      errorMsg = e.message;
     }
 
     const generationTime = Date.now() - startTime;
-    console.log(`[llama.cpp] ✓ Generated in ${generationTime}ms`);
+    console.log(`[llama.cpp] Stream finished in ${generationTime}ms. Success: ${isSuccessful}`);
 
-    // 成功時のログを記録
     logToDatabase({
       selectedCards: selectedPairs,
-      generatedPoem: { title, poem },
+      generatedPoem: isSuccessful ? { title, poem } : { error: errorMsg || 'Parse failed' },
       generationTimeMs: generationTime,
-      isSuccessful: true,
+      isSuccessful,
       promptText: `${SYSTEM_PROMPT}\n\n${userPrompt}`,
-      reasoningText
+      reasoningText: fullReasoning
     });
-
-    res.json({ title, poem });
 
   } catch (error) {
     const generationTime = Date.now() - startTime;
-    console.error(`[llama.cpp] ✗ Error after ${generationTime}ms:`, error.message);
+    console.error(`[llama.cpp] Stream Error:`, error.message);
 
-    // 失敗時のログを記録
+    // ストリーム途中でのエラーはどうしようもないが、レスポンスがまだ終わってなければエラーを送る
+    // しかしヘッダー送信済みの場合はres.writeでエラーイベントを送る等の工夫が必要
+    // ここではログだけ残す
+    if (!res.headersSent) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.end(); // 強制終了
+    }
+
     logToDatabase({
       selectedCards: req.body.selectedPairs || [],
       generatedPoem: { error: error.message },
       generationTimeMs: generationTime,
       isSuccessful: false,
       promptText: `${SYSTEM_PROMPT}\n\n${userPrompt}`,
-      reasoningText
-    });
-
-    res.status(500).json({
-      error: error.message || 'ポエムの生成に失敗しました'
+      reasoningText: fullReasoning || null
     });
   }
 });

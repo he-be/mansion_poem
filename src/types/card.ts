@@ -25,4 +25,5 @@ export interface GameState {
   selectedBackground: string;
   isGeneratingPoem: boolean;
   poemGenerationError: string | null;
+  streamingText: string;
 }

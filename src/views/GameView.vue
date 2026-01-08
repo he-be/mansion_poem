@@ -21,6 +21,7 @@
         <LoadingSpinner
           v-if="gameStore.isGeneratingPoem"
           message="ポエムを生成中..."
+          :streaming-text="gameStore.streamingText"
         />
         <AppButton
           v-else

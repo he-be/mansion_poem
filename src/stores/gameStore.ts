@@ -16,6 +16,7 @@ export const useGameStore = defineStore('game', {
     selectedBackground: '',
     isGeneratingPoem: false,
     poemGenerationError: null,
+    streamingText: '',
   }),
 
   getters: {
@@ -46,6 +47,7 @@ export const useGameStore = defineStore('game', {
       this.selectedBackground = ''
       this.isGeneratingPoem = false
       this.poemGenerationError = null
+      this.streamingText = ''
       this.currentPhase = 'game'
     },
 
@@ -71,16 +73,22 @@ export const useGameStore = defineStore('game', {
      * LLMによるポエム生成を含む
      */
     async generateFlyer() {
-      // 背景画像をランダムに選択
       this.selectedBackground = selectRandomBackground()
 
       // LLMによるポエムとタイトル生成
       this.isGeneratingPoem = true
       this.poemGenerationError = null
+      this.streamingText = ''
 
       try {
         const result = await generatePoemWithGemini({
           selectedPairs: this.selectedPairsArray,
+          onProgress: (text: string) => {
+            // ストリーミング内容を状態に反映
+            // 推論プロセスと生成本文を区別して表示したい場合はここで分岐可能
+            // 現状は全て流れるように表示する
+            this.streamingText += text
+          }
         })
         this.generatedTitle = result.title
         this.generatedPoem = result.poem
@@ -95,6 +103,7 @@ export const useGameStore = defineStore('game', {
         this.currentPhase = 'result'
       } finally {
         this.isGeneratingPoem = false
+        this.streamingText = ''
       }
     },
 
@@ -105,9 +114,14 @@ export const useGameStore = defineStore('game', {
       this.isGeneratingPoem = true
       this.poemGenerationError = null
 
+      this.streamingText = ''
+
       try {
         const result = await generatePoemWithGemini({
           selectedPairs: this.selectedPairsArray,
+          onProgress: (text: string) => {
+            this.streamingText += text
+          }
         })
         this.generatedTitle = result.title
         this.generatedPoem = result.poem
@@ -134,6 +148,7 @@ export const useGameStore = defineStore('game', {
       this.selectedBackground = ''
       this.isGeneratingPoem = false
       this.poemGenerationError = null
+      this.streamingText = ''
     },
   },
 })
