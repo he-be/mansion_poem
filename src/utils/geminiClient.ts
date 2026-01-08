@@ -101,16 +101,16 @@ export async function generatePoemWithGemini(
     const channelMatch1 = fullContent.match(/<\|channel\|>final_json_string[^{]*?(\{[\s\S]*?\})\s*$/);
     const channelMatch2 = fullContent.match(/<\|channel\|>final_json_string[^<]*<\|message\|>([\s\S]*?)(?:<\|channel\||$)/);
     const jsonMatch = fullContent.match(/```json\s*\n?([\s\S]*?)\n?```/);
-    const broadMatch = fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*?\})(?:\s*\)|;)*$/) || fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*?\})/);
+    const broadMatch = fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*\})(?:\s*\)|;)*$/) || fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*?\})/);
 
-    if (channelMatch1) {
+    if (broadMatch) {
+      jsonText = broadMatch[1];
+    } else if (channelMatch1) {
       jsonText = channelMatch1[1].trim();
     } else if (channelMatch2) {
       jsonText = channelMatch2[1].trim();
     } else if (jsonMatch) {
       jsonText = jsonMatch[1];
-    } else if (broadMatch) {
-      jsonText = broadMatch[1];
     }
 
     // JSONの末尾が切れている場合の簡易補正（必要なら）
@@ -121,7 +121,8 @@ export async function generatePoemWithGemini(
       throw new Error('APIから有効なレスポンスが得られませんでした (Empty Response)');
     }
 
-    if (jsonText.trim().startsWith('<')) {
+    // HTML判定: < で始まり、かつ <| (モデルの特殊トークン) で始まらない場合をエラーとする
+    if (jsonText.trim().startsWith('<') && !jsonText.trim().startsWith('<|')) {
       console.error('Received HTML instead of JSON:', jsonText.substring(0, 200));
       throw new Error('APIからHTMLエラーが返されました。サーバーの状態を確認してください。');
     }
@@ -131,6 +132,16 @@ export async function generatePoemWithGemini(
       // コメント削除 (// ...)
       jsonText = jsonText.replace(/\/\/.*$/gm, '');
       parsed = JSON.parse(jsonText);
+
+      // final_json_string が文字列として内包されている場合の展開
+      if (parsed.final_json_string && typeof parsed.final_json_string === 'string') {
+        try {
+          parsed = JSON.parse(parsed.final_json_string);
+        } catch (e2) {
+          console.warn('Failed to parse inner final_json_string:', e2);
+          // パース失敗しても元のparsedにtitle/poemがある可能性に賭ける
+        }
+      }
     } catch (e) {
       console.error('JSON Parse Error:', e);
       console.error('Problematic JSON text:', jsonText);

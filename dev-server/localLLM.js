@@ -450,16 +450,16 @@ app.post('/api/generate-poem', async (req, res) => {
       const channelMatch1 = fullContent.match(/<\|channel\|>final_json_string[^{]*?(\{[\s\S]*?\})\s*$/);
       const channelMatch2 = fullContent.match(/<\|channel\|>final_json_string[^<]*<\|message\|>([\s\S]*?)(?:<\|channel\||$)/);
       const jsonMatch = fullContent.match(/```json\s*\n?([\s\S]*?)\n?```/);
-      const broadMatch = fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*?\})(?:\s*\)|;)*$/) || fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*?\})/);
+      const broadMatch = fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*\})(?:\s*\)|;)*$/) || fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*?\})/);
 
-      if (channelMatch1) {
+      if (broadMatch) {
+        jsonText = broadMatch[1];
+      } else if (channelMatch1) {
         jsonText = channelMatch1[1].trim();
       } else if (channelMatch2) {
         jsonText = channelMatch2[1].trim();
       } else if (jsonMatch) {
         jsonText = jsonMatch[1];
-      } else if (broadMatch) {
-        jsonText = broadMatch[1];
       }
 
       // コメント削除 (// ...)
@@ -467,7 +467,17 @@ app.post('/api/generate-poem', async (req, res) => {
 
       // JSONとしてパース試行
       try {
-        const parsed = JSON.parse(jsonText);
+        let parsed = JSON.parse(jsonText);
+
+        // final_json_string がJSON文字列の場合の展開
+        if (parsed.final_json_string && typeof parsed.final_json_string === 'string') {
+          try {
+            parsed = JSON.parse(parsed.final_json_string);
+          } catch (e2) {
+            // ignore
+          }
+        }
+
         title = parsed.title || '';
         poem = parsed.poem || '';
         poem = poem.replace(/\\n/g, '\n');
