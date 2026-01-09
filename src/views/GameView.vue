@@ -18,20 +18,24 @@
         />
       </div>
 
-      <footer class="game-footer">
-        <button
-          class="text-button"
-          :disabled="!gameStore.isAllSelected || gameStore.isGeneratingPoem"
-          @click="handleGenerateFlyer"
-        >
-          {{ gameStore.isGeneratingPoem ? '生成中...' : '広告を生成する' }}
-        </button>
-      </footer>
+      <Transition name="fade-slide">
+        <footer v-if="showGenerateButton" class="game-footer">
+          <button
+            class="text-button"
+            :disabled="!gameStore.isAllSelected || gameStore.isGeneratingPoem"
+            @click="handleGenerateFlyer"
+          >
+            {{ gameStore.isGeneratingPoem ? '生成中...' : '広告を生成する' }}
+          </button>
+        </footer>
+      </Transition>
 
-      <!-- Streaming Area (Below Button) -->
-      <div v-if="gameStore.isGeneratingPoem" class="streaming-area">
-         <StreamingGrid />
-      </div>
+      <Transition name="slide-up">
+        <!-- Streaming Area (Expanded) -->
+        <div v-if="!showGenerateButton && gameStore.isGeneratingPoem" class="streaming-area expanded">
+           <StreamingGrid />
+        </div>
+      </Transition>
 
     </div>
 
@@ -58,6 +62,7 @@ const gameStore = useGameStore()
 
 const isModalOpen = ref(false)
 const selectedCard = ref<ConditionCard | null>(null)
+const showGenerateButton = ref(true)
 
 const selectedCount = computed(() => Object.keys(gameStore.selectedPairs).length)
 
@@ -88,7 +93,19 @@ const handlePoemSelected = (poemId: string) => {
 }
 
 const handleGenerateFlyer = async () => {
-  await gameStore.generateFlyer()
+  // 生成開始（ボタンのテキストが「生成中...」に変わる）
+  const generationPromise = gameStore.generateFlyer()
+  
+  // ユーザーが「生成中...」を確認できるよう少し待つ
+  await new Promise(resolve => setTimeout(resolve, 800))
+  
+  // ボタンを消してストリーミングエリアを表示
+  showGenerateButton.value = false
+  
+  // 生成完了まで待機
+  await generationPromise
+  
+  // 結果画面へ遷移
   router.push('/result')
 }
 </script>
@@ -144,16 +161,47 @@ const handleGenerateFlyer = async () => {
   display: flex;
   justify-content: center;
   margin-bottom: 2rem;
+  height: 80px; /* 固定高さを確保してTransition時のレイアウト崩れを防ぐ */
 }
 
 .streaming-area {
   width: 100%;
-  animation: fadeIn 0.5s ease;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+.streaming-area.expanded {
+  height: 600px; /* 元の300pxの2倍 */
+  margin-top: -2rem; /* フッターのマージン分などを調整 */
+}
+
+/* Button Fade/Slide Out */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.5s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Streaming Area Slide Up */
+.slide-up-enter-active {
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); /* 自然なスライドイン */
+}
+
+.slide-up-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(100px); /* 下から入ってくる */
+}
+
+.slide-up-enter-to {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @media (max-width: 768px) {

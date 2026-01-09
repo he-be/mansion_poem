@@ -29,10 +29,11 @@ const thoughts = computed(() => gameStore.streamingThoughts);
 <style scoped>
 .streaming-grid-container {
   width: 100%;
-  max-width: 1200px; /* Wide container */
-  height: 300px;     /* Fixed height for column filling */
+  max-width: 1300px; /* Width increased for 4 columns */
+  height: 100%;
+  min-height: 300px;
   margin: 2rem auto 0;
-  padding: 1rem;
+  padding: 0.5rem; /* Reduced padding */
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(212, 175, 55, 0.2);
   border-radius: 4px;
@@ -40,26 +41,24 @@ const thoughts = computed(() => gameStore.streamingThoughts);
 }
 
 .grid-wrapper {
-  column-count: 3; /* 3 Columns */
-  column-gap: 2rem;
-  column-fill: auto; /* Fill first column then move to next */
+  column-count: 4; /* 4 Columns */
+  column-gap: 1rem; /* Reduced gap */
+  column-fill: auto;
   height: 100%;
   
-  /* For Firefox/Chrome column break handling */
   widows: 1;
   orphans: 1;
 }
 
 .grid-item {
-  break-inside: avoid; /* Prevent splitting across columns */
-  margin-bottom: 0.8rem;
+  break-inside: avoid;
+  margin-bottom: 0.5rem; /* Reduced margin */
   opacity: 0.9;
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* Slightly smaller but readable */
   color: #e0e0e0;
-  line-height: 1.4;
+  line-height: 1.35;
   
-  /* Premium card styling for items? Maybe too heavy. Keep it simple text. */
-  padding: 0.5rem;
+  padding: 0.35rem 0.5rem; /* Compact padding */
   background: rgba(255, 255, 255, 0.03);
   border-radius: 2px;
 }
@@ -68,8 +67,8 @@ const thoughts = computed(() => gameStore.streamingThoughts);
   color: #d4af37;
   font-weight: 700;
   border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-  padding-bottom: 0.25rem;
-  margin-top: 1rem;
+  padding-bottom: 0.2rem;
+  margin-top: 0.75rem;
 }
 
 .grid-item.header:first-child {
@@ -96,10 +95,17 @@ const thoughts = computed(() => gameStore.streamingThoughts);
 
 @media (max-width: 768px) {
   .grid-wrapper {
-    column-count: 1;
+    column-count: 2; /* 2 cols on tablet */
+    column-gap: 1rem;
     overflow-y: auto; 
     height: auto;
     max-height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-wrapper {
+    column-count: 1; /* 1 col on mobile */
   }
   
   .streaming-grid-container {
