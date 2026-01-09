@@ -42,9 +42,10 @@ describe('ResultView', () => {
       },
     })
 
-    // メニュートグルボタンをクリック
-    const menuToggle = wrapper.find('.menu-toggle')
-    await menuToggle.trigger('click')
+    // "物件詳細"ボタンをクリック（アクションバーの最初のボタン）
+    const buttons = wrapper.findAll('.result-actions button')
+    const detailsButton = buttons[0]
+    await detailsButton.trigger('click')
 
     // サイドメニューが表示される
     expect(wrapper.find('.side-menu').exists()).toBe(true)
@@ -69,15 +70,16 @@ describe('ResultView', () => {
     // 初期状態ではメニューは閉じている
     expect(wrapper.find('.side-menu').exists()).toBe(false)
 
-    // メニュートグルボタンをクリック
-    const menuToggle = wrapper.find('.menu-toggle')
-    await menuToggle.trigger('click')
+    // "物件詳細"ボタンをクリック
+    const buttons = wrapper.findAll('.result-actions button')
+    const detailsButton = buttons[0]
+    await detailsButton.trigger('click')
 
     // メニューが開く
     expect(wrapper.find('.side-menu').exists()).toBe(true)
 
-    // もう一度クリック
-    await menuToggle.trigger('click')
+    // "閉じる"ボタン（同じボタンだがテキストが変わる）をクリック
+    await detailsButton.trigger('click')
 
     // メニューが閉じる
     expect(wrapper.find('.side-menu').exists()).toBe(false)
@@ -93,13 +95,10 @@ describe('ResultView', () => {
       },
     })
 
-    // メニューを開く
-    const menuToggle = wrapper.find('.menu-toggle')
-    await menuToggle.trigger('click')
-
-    // 「もう一度創造する」ボタンをクリック
-    const restartButton = wrapper.find('.menu-footer button')
-    await restartButton.trigger('click')
+    // "終了する"ボタンをクリック（アクションバーの3番目のボタン）
+    const buttons = wrapper.findAll('.result-actions button')
+    const endButton = buttons[2]
+    await endButton.trigger('click')
 
     // ストアがリセットされることを確認
     expect(store.currentPhase).toBe('start')
@@ -238,8 +237,11 @@ describe('ResultView', () => {
         },
       })
 
-      // 印刷ボタンが存在することを確認
-      expect(wrapper.find('.print-button').exists()).toBe(true)
+      // 印刷ボタン（アクションバーの2番目のボタン）が存在することを確認
+      const buttons = wrapper.findAll('.result-actions button')
+      const printButton = buttons[1] // 資料請求ボタン
+      expect(printButton.exists()).toBe(true)
+      expect(printButton.text()).toBe('資料請求')
     })
 
     it('renders BacksidePrint component for two-sided printing', () => {

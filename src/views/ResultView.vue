@@ -30,16 +30,18 @@
       />
     </div>
 
-    <!-- 右下のメニュートグルボタン -->
-    <button class="menu-toggle" @click="isMenuOpen = !isMenuOpen" aria-label="メニュー">
-      <span v-if="!isMenuOpen">☰</span>
-      <span v-else>✕</span>
-    </button>
-
-    <!-- 印刷ボタン -->
-    <button class="print-button" @click="handlePrint" aria-label="資料請求">
-      📄
-    </button>
+    <!-- アクションボタン群 (画面下部固定) -->
+    <div class="result-actions">
+      <button class="text-button secondary action-btn" @click="isMenuOpen = !isMenuOpen">
+        {{ isMenuOpen ? '閉じる' : '物件詳細' }}
+      </button>
+      <button class="text-button action-btn" @click="handlePrint">
+        資料請求
+      </button>
+      <button class="text-button secondary action-btn" @click="handleRestart">
+        終了する
+      </button>
+    </div>
 
     <!-- 裏面（印刷時のみ表示） -->
     <BacksidePrint :selected-pairs="gameStore.selectedPairsArray" />
@@ -69,11 +71,7 @@
           </div>
 
           <div class="menu-footer">
-            <AppButton
-              label="もう一度創造する"
-              variant="secondary"
-              @click="handleRestart"
-            />
+             <!-- メニュー内のボタンはメインアクションバーに移動したため削除、または補足情報などを入れる -->
           </div>
         </div>
       </div>
@@ -82,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, withDefaults } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/gameStore'
 import AppButton from '@/components/common/AppButton.vue'
@@ -132,6 +130,7 @@ const handlePrint = () => {
   min-height: 100vh;
   overflow-y: auto;
   background-color: #000000;
+  padding-bottom: 100px; /* Space for action bar */
 }
 
 /* 印刷時はスクロールバーを消す */
@@ -139,6 +138,15 @@ const handlePrint = () => {
   .result-view {
     overflow: visible;
     height: auto;
+    padding-bottom: 0;
+    min-height: auto;
+  }
+  
+  .result-actions,
+  .side-menu,
+  .menu-toggle, 
+  .error-overlay {
+    display: none !important;
   }
 }
 
@@ -159,65 +167,47 @@ const handlePrint = () => {
   margin: 0 0 1rem 0;
 }
 
-/* メニュートグルボタン */
-.menu-toggle {
+/* Action Bar */
+.result-actions {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  z-index: 100;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #d4af37 0%, #c9a02c 100%);
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 1.5rem;
+  background: rgba(26, 26, 46, 0.9);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(212, 175, 55, 0.3);
   display: flex;
-  align-items: center;
   justify-content: center;
-}
-
-.menu-toggle:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.5);
-}
-
-.menu-toggle:active {
-  transform: scale(0.95);
-}
-
-/* 印刷ボタン */
-.print-button {
-  position: fixed;
-  bottom: 2rem;
-  right: 5.5rem;
+  gap: 2rem;
   z-index: 100;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
 }
 
-.print-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.5);
+.action-btn {
+  min-width: 200px;
+  font-size: 1.2rem;
+  padding: 0.8rem 2rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-.print-button:active {
-  transform: scale(0.95);
+@media (max-width: 768px) {
+  .result-actions {
+    flex-direction: row;
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .action-btn {
+    min-width: auto;
+    flex: 1;
+    font-size: 1rem;
+    padding: 0.8rem 1rem;
+  }
 }
+
+/* Removed old button styles... */
+
 
 /* サイドメニュー */
 .side-menu {

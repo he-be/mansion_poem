@@ -127,7 +127,8 @@ defineOptions({
   .layout-a {
     position: relative;
     width: 210mm;
-    height: 297mm;
+    height: 296mm;
+    overflow: hidden !important;
   }
 
   .background-image {
@@ -137,7 +138,7 @@ defineOptions({
   .poem-overlay {
     position: relative;
     width: 210mm;
-    height: 297mm;
+    height: 296mm;
     padding: 30mm 25mm;
     display: flex;
     flex-direction: column;

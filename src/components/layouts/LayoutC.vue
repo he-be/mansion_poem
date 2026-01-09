@@ -201,11 +201,20 @@ const handleScroll = (event: Event) => {
   .layout-c {
     position: relative;
     width: 210mm;
-    height: 297mm;
+    height: 296mm;
+    overflow: hidden !important;
   }
 
   .background-image {
     display: none !important;
+  }
+
+  .poem-overlay {
+    position: relative;
+    width: 210mm;
+    height: 296mm;
+    padding: 30mm 25mm;
+    display: flex;
   }
 
   .scroll-container {

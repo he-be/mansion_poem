@@ -159,15 +159,17 @@ onMounted(async () => {
   .backside-print {
     display: block;
     width: 210mm;
-    height: 297mm;
+    height: 296mm;
+    max-height: 296mm;
     padding: 15mm 20mm;
     box-sizing: border-box;
     background: white;
     color: #000;
-    page-break-before: always;
+    /* page-break-beforeは重複するため削除 */
     page-break-after: avoid;
+    break-after: avoid;
     position: relative;
-    overflow: hidden;
+    overflow: hidden !important;
   }
 
   /* A4サイズ計算:

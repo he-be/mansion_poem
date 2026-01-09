@@ -4,6 +4,7 @@
  */
 
 @media print {
+
   /* A4サイズ固定、余白なし */
   @page {
     size: A4;
@@ -57,10 +58,20 @@
   .layout-b,
   .layout-c {
     width: 210mm;
-    height: 297mm;
+    /* 
+     * A4(297mm)だとブラウザの計算誤差や微細なマージンで2ページ目にはみ出す場合があるため、
+     * 座標への影響がほぼない範囲(1mm)だけ縮める。
+     * 高さ296mmあれば、Centered Layoutのズレは0.5mmとなり、許容範囲内。
+     */
+    height: 296mm;
+    max-height: 296mm;
+    margin: 0 auto;
+    /* センタリング */
     position: relative;
-    overflow: hidden;
+    overflow: hidden !important;
+    /* 絶対にはみ出させない */
     page-break-after: always;
+    break-after: page;
   }
 
   /* 裏面印刷設定 */
@@ -68,6 +79,9 @@
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
+    /* page-break-beforeは前の要素のafterで処理するので削除 */
+    page-break-before: avoid;
+    break-before: avoid;
   }
 
   /* QRコードの表示設定 */

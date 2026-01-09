@@ -4,8 +4,9 @@
       <header class="game-header">
         <h1 class="game-title">言葉の選択</h1>
         <p class="game-instruction">
-          五つの条件から、心に響く言葉を選ぶ。<br />
-          <span class="selection-status">{{ selectedCount }}/5 の物語が選ばれました。</span>
+          5つの条件カードをタップして、<br />
+          それぞれの「言い換え」を選んでください。<br />
+          <span class="selection-status">{{ selectedCount }}/5 選択完了</span>
         </p>
       </header>
 
@@ -18,18 +19,20 @@
       </div>
 
       <footer class="game-footer">
-        <StreamingBubbles v-if="gameStore.isGeneratingPoem" />
-        <LoadingSpinner
-          v-if="gameStore.isGeneratingPoem"
-          message="ポエムを生成中..."
-        />
-        <AppButton
-          v-else
-          label="物語を完成させる"
+        <button
+          class="text-button"
           :disabled="!gameStore.isAllSelected || gameStore.isGeneratingPoem"
           @click="handleGenerateFlyer"
-        />
+        >
+          {{ gameStore.isGeneratingPoem ? '生成中...' : '広告を生成する' }}
+        </button>
       </footer>
+
+      <!-- Streaming Area (Below Button) -->
+      <div v-if="gameStore.isGeneratingPoem" class="streaming-area">
+         <StreamingGrid />
+      </div>
+
     </div>
 
     <PoemSelectionModal
@@ -48,9 +51,7 @@ import { useGameStore } from '@/stores/gameStore'
 import type { ConditionCard } from '@/types/card'
 import CardHand from '@/components/cards/CardHand.vue'
 import PoemSelectionModal from '@/components/modals/PoemSelectionModal.vue'
-import AppButton from '@/components/common/AppButton.vue'
-import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
-import StreamingBubbles from '@/components/common/StreamingBubbles.vue'
+import StreamingGrid from '@/components/common/StreamingGrid.vue'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -97,6 +98,7 @@ const handleGenerateFlyer = async () => {
   min-height: 100vh;
   background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 50%, #16213e 100%);
   padding: 2rem;
+  padding-bottom: 4rem;
 }
 
 .game-container {
@@ -129,9 +131,9 @@ const handleGenerateFlyer = async () => {
 .selection-status {
   display: block;
   margin-top: 0.75rem;
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: #d4af37;
-  font-style: italic;
+  font-weight: bold;
 }
 
 .game-content {
@@ -141,28 +143,27 @@ const handleGenerateFlyer = async () => {
 .game-footer {
   display: flex;
   justify-content: center;
-  position: relative;
+  margin-bottom: 2rem;
+}
+
+.streaming-area {
+  width: 100%;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 768px) {
+  /* Existing media queries... */
   .game-view {
     padding: 1rem;
   }
-
-  .game-header {
-    margin-bottom: 2rem;
-  }
-
+  
   .game-title {
-    font-size: 1.5rem;
-  }
-
-  .game-instruction {
-    font-size: 1rem;
-  }
-
-  .game-content {
-    margin-bottom: 2rem;
+    font-size: 1.8rem;
   }
 }
 </style>
