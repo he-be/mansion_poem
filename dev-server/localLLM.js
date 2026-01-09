@@ -34,7 +34,8 @@ function getEnvConfig() {
   const configs = {
     mac: {
       name: 'MacBook (Metal/MPS)',
-      serverUrl: process.env.LLAMACPP_SERVER_URL || 'http://100.121.61.11:8080/v1/chat/completions',
+      // serverUrl: process.env.LLAMACPP_SERVER_URL || 'http://100.121.61.11:8080/v1/chat/completions',
+      serverUrl: process.env.LLAMACPP_SERVER_URL || 'http://127.0.0.1:8080/v1/chat/completions',
       launchCommand: `llama.cpp/llama-server -m ${MODEL_NAME} \\\n     --jinja -ngl 99 --threads -1 --ctx-size 16384 \\\n     --temp 1.0 --top-p 1.0 --top-k 0 \\\n     --host 0.0.0.0 --port 8080`
     },
     cuda: {
