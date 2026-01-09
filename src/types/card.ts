@@ -26,4 +26,10 @@ export interface GameState {
   isGeneratingPoem: boolean;
   poemGenerationError: string | null;
   streamingText: string;
+  streamingThoughts: {
+    id: number;
+    text: string;
+    type: 'header' | 'item' | 'normal';
+    timestamp: number;
+  }[];
 }

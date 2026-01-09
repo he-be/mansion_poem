@@ -44,3 +44,4 @@ datasets*
 /debug_logs/
 docs/log_*.txt
 docs/plan_*.txt
+debug_streaming/

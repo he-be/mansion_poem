@@ -100,11 +100,16 @@ export async function generatePoemWithGemini(
 
     const channelMatch1 = fullContent.match(/<\|channel\|>final_json_string[^{]*?(\{[\s\S]*?\})\s*$/);
     const channelMatch2 = fullContent.match(/<\|channel\|>final_json_string[^<]*<\|message\|>([\s\S]*?)(?:<\|channel\||$)/);
+    const channelStringMatch = fullContent.match(/<\|channel\|>final_json_string\s*("[\s\S]*?")/);
     const jsonMatch = fullContent.match(/```json\s*\n?([\s\S]*?)\n?```/);
     const broadMatch = fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*\})(?:\s*\)|;)*$/) || fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*?\})/);
 
     if (broadMatch) {
       jsonText = broadMatch[1];
+    } else if (channelStringMatch) {
+      jsonText = channelStringMatch[1];
+      // LLMが改行を含む文字列を出力した場合の補正
+      jsonText = jsonText.replace(/\r?\n/g, '\\n');
     } else if (channelMatch1) {
       jsonText = channelMatch1[1].trim();
     } else if (channelMatch2) {
@@ -127,19 +132,49 @@ export async function generatePoemWithGemini(
       throw new Error('APIからHTMLエラーが返されました。サーバーの状態を確認してください。');
     }
 
-    let parsed;
+    let parsed: any;
     try {
       // コメント削除 (// ...)
       jsonText = jsonText.replace(/\/\/.*$/gm, '');
-      parsed = JSON.parse(jsonText);
+
+      try {
+        parsed = JSON.parse(jsonText);
+      } catch (e) {
+        // JSON parse failed, will attempt fallback
+      }
+
+      // JSON文字列としてパースされた場合（二重エンコード対策）
+      if (typeof parsed === 'string') {
+        try {
+          parsed = JSON.parse(parsed);
+        } catch (e) {
+          // ignore
+        }
+      }
 
       // final_json_string が文字列として内包されている場合の展開
-      if (parsed.final_json_string && typeof parsed.final_json_string === 'string') {
+      if (parsed && parsed.final_json_string && typeof parsed.final_json_string === 'string') {
         try {
           parsed = JSON.parse(parsed.final_json_string);
         } catch (e2) {
           console.warn('Failed to parse inner final_json_string:', e2);
           // パース失敗しても元のparsedにtitle/poemがある可能性に賭ける
+        }
+      }
+
+      // [Fallback] 直接プロパティ抽出（パース失敗または不完全な場合）
+      if (!parsed || !parsed.title || !parsed.poem) {
+        const titleMatch = fullContent.match(/"title"\s*:\s*("(?:\\[\s\S]|[^"\\])*")/);
+        const poemMatch = fullContent.match(/"poem"\s*:\s*("(?:\\[\s\S]|[^"\\])*")/);
+
+        if (titleMatch && poemMatch) {
+          try {
+            parsed = parsed || {};
+            parsed.title = JSON.parse(titleMatch[1]);
+            parsed.poem = JSON.parse(poemMatch[1]);
+          } catch (e) {
+            // ignore
+          }
         }
       }
     } catch (e) {
@@ -148,8 +183,8 @@ export async function generatePoemWithGemini(
       throw new Error('APIレスポンスの解析に失敗しました (JSON Parse Error)');
     }
 
-    title = parsed.title || '';
-    poem = parsed.poem || '';
+    title = (parsed && parsed.title) || '';
+    poem = (parsed && parsed.poem) || '';
 
     if (!title || !poem) {
       // JSONではないが、平文で返ってきた場合のフォールバックなどを検討してもよいが

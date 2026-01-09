@@ -447,13 +447,18 @@ app.post('/api/generate-poem', async (req, res) => {
       let jsonText = fullContent;
 
       // パターンマッチング（既存ロジック）
+      // パターンマッチング（既存ロジック）
       const channelMatch1 = fullContent.match(/<\|channel\|>final_json_string[^{]*?(\{[\s\S]*?\})\s*$/);
       const channelMatch2 = fullContent.match(/<\|channel\|>final_json_string[^<]*<\|message\|>([\s\S]*?)(?:<\|channel\||$)/);
+      const channelStringMatch = fullContent.match(/<\|channel\|>final_json_string\s*("[\s\S]*?")/);
       const jsonMatch = fullContent.match(/```json\s*\n?([\s\S]*?)\n?```/);
       const broadMatch = fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*\})(?:\s*\)|;)*$/) || fullContent.match(/(\{[\s\S]*?"final_json_string"[\s\S]*?\})/);
 
       if (broadMatch) {
         jsonText = broadMatch[1];
+      } else if (channelStringMatch) {
+        jsonText = channelStringMatch[1];
+        jsonText = jsonText.replace(/\r?\n/g, '\\n');
       } else if (channelMatch1) {
         jsonText = channelMatch1[1].trim();
       } else if (channelMatch2) {
@@ -466,26 +471,52 @@ app.post('/api/generate-poem', async (req, res) => {
       jsonText = jsonText.replace(/\/\/.*$/gm, '');
 
       // JSONとしてパース試行
+      let parsed;
       try {
-        let parsed = JSON.parse(jsonText);
+        parsed = JSON.parse(jsonText);
+      } catch (e) {
+        // ignore
+      }
 
-        // final_json_string がJSON文字列の場合の展開
-        if (parsed.final_json_string && typeof parsed.final_json_string === 'string') {
+      // JSON文字列としてパースされた場合（二重エンコード対策）
+      if (typeof parsed === 'string') {
+        try {
+          parsed = JSON.parse(parsed);
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // final_json_string がJSON文字列の場合の展開
+      if (parsed && parsed.final_json_string && typeof parsed.final_json_string === 'string') {
+        try {
+          parsed = JSON.parse(parsed.final_json_string);
+        } catch (e2) {
+          // ignore
+        }
+      }
+
+      // [Fallback] Direct Property Extraction
+      if (!parsed || !parsed.title || !parsed.poem) {
+        const titleMatch = fullContent.match(/"title"\s*:\s*("(?:\\[\s\S]|[^"\\])*")/);
+        const poemMatch = fullContent.match(/"poem"\s*:\s*("(?:\\[\s\S]|[^"\\])*")/);
+
+        if (titleMatch && poemMatch) {
           try {
-            parsed = JSON.parse(parsed.final_json_string);
-          } catch (e2) {
+            parsed = parsed || {};
+            parsed.title = JSON.parse(titleMatch[1]);
+            parsed.poem = JSON.parse(poemMatch[1]);
+          } catch (e) {
             // ignore
           }
         }
-
-        title = parsed.title || '';
-        poem = parsed.poem || '';
-        poem = poem.replace(/\\n/g, '\n');
-
-        if (title && poem) isSuccessful = true;
-      } catch (e) {
-        // パース失敗なら失敗として扱う
       }
+
+      title = (parsed && parsed.title) || '';
+      poem = (parsed && parsed.poem) || '';
+      poem = poem.replace(/\\n/g, '\n');
+
+      if (title && poem) isSuccessful = true;
 
     } catch (e) {
       errorMsg = e.message;

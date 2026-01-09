@@ -1,3 +1,4 @@
+
 import { defineStore } from 'pinia'
 import type { GameState, ConditionCard, SelectedPair } from '@/types/card'
 import cardsData from '@/data/cards.json'
@@ -5,6 +6,7 @@ import { selectRandomCards } from '@/utils/cardSelector'
 import { generateTitle } from '@/utils/titleGenerator'
 import { generatePoemWithGemini } from '@/utils/geminiClient'
 import { selectRandomBackground } from '@/utils/backgroundSelector'
+import { StreamingParser } from '@/utils/streamingParser'
 
 export const useGameStore = defineStore('game', {
   state: (): GameState => ({
@@ -17,6 +19,7 @@ export const useGameStore = defineStore('game', {
     isGeneratingPoem: false,
     poemGenerationError: null,
     streamingText: '',
+    streamingThoughts: [],
   }),
 
   getters: {
@@ -48,6 +51,7 @@ export const useGameStore = defineStore('game', {
       this.isGeneratingPoem = false
       this.poemGenerationError = null
       this.streamingText = ''
+      this.streamingThoughts = []
       this.currentPhase = 'game'
     },
 
@@ -79,15 +83,24 @@ export const useGameStore = defineStore('game', {
       this.isGeneratingPoem = true
       this.poemGenerationError = null
       this.streamingText = ''
+      this.streamingThoughts = []
+      const parser = new StreamingParser();
 
       try {
         const result = await generatePoemWithGemini({
           selectedPairs: this.selectedPairsArray,
-          onProgress: (text: string) => {
+          onProgress: (text: string, _isReasoning: boolean) => {
             // ストリーミング内容を状態に反映
             // 推論プロセスと生成本文を区別して表示したい場合はここで分岐可能
             // 現状は全て流れるように表示する
             this.streamingText += text
+
+            // パーサーで思考バブルを生成
+            // 推論中(isReasoning=true)またはテキストが解析可能な場合
+            const newThoughts = parser.append(text);
+            if (newThoughts.length > 0) {
+              this.streamingThoughts.push(...newThoughts);
+            }
           }
         })
         this.generatedTitle = result.title
@@ -115,12 +128,19 @@ export const useGameStore = defineStore('game', {
       this.poemGenerationError = null
 
       this.streamingText = ''
+      this.streamingThoughts = []
+      const parser = new StreamingParser();
 
       try {
         const result = await generatePoemWithGemini({
           selectedPairs: this.selectedPairsArray,
-          onProgress: (text: string) => {
+          onProgress: (text: string, _isReasoning: boolean) => {
             this.streamingText += text
+
+            const newThoughts = parser.append(text);
+            if (newThoughts.length > 0) {
+              this.streamingThoughts.push(...newThoughts);
+            }
           }
         })
         this.generatedTitle = result.title

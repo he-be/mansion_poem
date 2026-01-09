@@ -18,10 +18,10 @@
       </div>
 
       <footer class="game-footer">
+        <StreamingBubbles v-if="gameStore.isGeneratingPoem" />
         <LoadingSpinner
           v-if="gameStore.isGeneratingPoem"
           message="ポエムを生成中..."
-          :streaming-text="gameStore.streamingText"
         />
         <AppButton
           v-else
@@ -50,6 +50,7 @@ import CardHand from '@/components/cards/CardHand.vue'
 import PoemSelectionModal from '@/components/modals/PoemSelectionModal.vue'
 import AppButton from '@/components/common/AppButton.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import StreamingBubbles from '@/components/common/StreamingBubbles.vue'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -140,6 +141,7 @@ const handleGenerateFlyer = async () => {
 .game-footer {
   display: flex;
   justify-content: center;
+  position: relative;
 }
 
 @media (max-width: 768px) {
