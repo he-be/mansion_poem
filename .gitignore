@@ -45,3 +45,4 @@ datasets*
 docs/log_*.txt
 docs/plan_*.txt
 debug_streaming/
+.dev.vars
