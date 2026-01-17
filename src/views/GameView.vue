@@ -4,9 +4,9 @@
       <header class="game-header">
         <h1 class="game-title">言葉の選択</h1>
         <p class="game-instruction">
-          5つの条件カードをタップして、<br />
+          {{ targetCount }}つの条件カードをタップして、<br />
           それぞれの「言い換え」を選んでください。<br />
-          <span class="selection-status">{{ selectedCount }}/5 選択完了</span>
+          <span class="selection-status">{{ selectedCount }}/{{ targetCount }} 選択完了</span>
         </p>
       </header>
 
@@ -64,6 +64,7 @@ const isModalOpen = ref(false)
 const selectedCard = ref<ConditionCard | null>(null)
 const showGenerateButton = ref(true)
 
+const targetCount = Number(import.meta.env.VITE_MAKER_FAIRE_MODE === 'true' ? 3 : 5)
 const selectedCount = computed(() => Object.keys(gameStore.selectedPairs).length)
 
 // リロード時にカードが配られていなければスタート画面へ

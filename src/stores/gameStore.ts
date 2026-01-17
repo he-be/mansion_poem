@@ -27,7 +27,8 @@ export const useGameStore = defineStore('game', {
      * 5枚すべてのカードが選択されているかチェック
      */
     isAllSelected: (state): boolean => {
-      return Object.keys(state.selectedPairs).length === 5
+      const targetCount = import.meta.env.VITE_MAKER_FAIRE_MODE === 'true' ? 3 : 5
+      return Object.keys(state.selectedPairs).length === targetCount
     },
 
     /**
@@ -43,7 +44,8 @@ export const useGameStore = defineStore('game', {
      * ゲームを開始し、5枚のカードをランダムに配る
      */
     startGame() {
-      this.dealtCards = selectRandomCards(cardsData as ConditionCard[], 5)
+      const cardCount = import.meta.env.VITE_MAKER_FAIRE_MODE === 'true' ? 3 : 5
+      this.dealtCards = selectRandomCards(cardsData as ConditionCard[], cardCount)
       this.selectedPairs = {}
       this.generatedTitle = ''
       this.generatedPoem = ''

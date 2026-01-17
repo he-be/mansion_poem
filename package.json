@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:vite\" --names \"llama.cpp,Vite\" --prefix-colors \"cyan,green\"",
+    "dev:maker": "VITE_MAKER_FAIRE_MODE=true npm run dev",
     "dev:server": "node dev-server/localLLM.js",
     "dev:vite": "vite",
     "build": "vue-tsc && vite build",
